@@ -24,6 +24,11 @@ classdef AStar_Structure_Fast < handle
     methods
         
         function astar = AStar_Structure_Fast(varargin)
+        % EXAMPLE FUNCTION CALL: astar = AStar_Structure_Fast()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Construct the structure
+        % TYPE: Constructor Method
             
             % Map Properties
             astar.map.coordinates      = [];
@@ -74,6 +79,14 @@ classdef AStar_Structure_Fast < handle
     methods
         
         function solution = runMap(astar,map,criteria)
+        % EXAMPLE FUNCTION CALL: solution = astar.runMap(map,criteria)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Take user varables and run master script for AStar
+        % INPUTS:      map - 2D array containing obstacles, target, and start location
+        %         criteria - 1) Move orthogonally, 2) Move orthogonally and diagonally
+        % OUTPUTS: solution - shortest path for the robot to move to the solution
+        % TYPE: Public Method
             
             % Get initial map properties
             astar.map.coordinates  = map;
@@ -97,8 +110,12 @@ classdef AStar_Structure_Fast < handle
 
     methods(Access = private)
         
-        % Pre-Processor Functions
         function solution = master(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Run the setup functions and AStar algorithm
+        % TYPE: Private Method
             
             % Prepare Algorithm Parameters
             astar.getMapProperties();
@@ -115,6 +132,11 @@ classdef AStar_Structure_Fast < handle
         end
         
         function getMapProperties(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Get object, target, and start location from the user provided map
+        % TYPE: Private Method
             
             % Get start and target locations
             [xStartLocation,yStartLocation] = find(astar.map.coordinates == astar.map.legend.start);
@@ -128,6 +150,11 @@ classdef AStar_Structure_Fast < handle
         end
 
         function displayMap(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Display the map with obstacles, start location, and target location
+        % TYPE: Private Method
             
             % Initialize the figure
             astar.display.figureHandle = figure('Name','A* Algorithm','NumberTitle','off'); % initialize figure
@@ -152,6 +179,11 @@ classdef AStar_Structure_Fast < handle
         end
         
         function displaySolution(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Display the solution from AStar algorithm
+        % TYPE: Private Method
             
             astar.display.handles.solutionNodes = plot(astar.robot.path(:,1)+.5,astar.robot.path(:,2)+.5,'bo'); % display the solution as nodes
             astar.display.handles.solutionPath = plot(astar.robot.path(:,1)+.5,astar.robot.path(:,2)+.5,'b--'); % connect the solution nodes with a dotted line
@@ -160,6 +192,11 @@ classdef AStar_Structure_Fast < handle
         end
         
         function displayAlgorithmState(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Display the current status of the algorithm
+        % TYPE: Private Method
             
             if (astar.state.ready == 1) % algorithm is ready to compute
                 fprintf('Starting A* Algorithm... '); % notify user that the algorithm starting
@@ -176,6 +213,11 @@ classdef AStar_Structure_Fast < handle
         end
         
         function initializeVariables(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Initialize variables before running AStar algorithm
+        % TYPE: Private Method
             
             astar.cost = @(location,target)(sqrt((target(1)-location(1))^2 + (target(2)-location(2))^2)); % set cost function
             
@@ -194,37 +236,27 @@ classdef AStar_Structure_Fast < handle
         end
         
         function startAlgorithm(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Run the AStar algorithm
+        % TYPE: Private Method
             
-            % Open Node List Properties
+            % Initialize Open Node List and Counter
             openList  = [];
             openCount = 0;
             
-            % Closed Node List Properties
+            % Initialize Closed Node List and Counter
             closedList  = [];
             closedCount = 0;
             
-            % Expand Node List Properties
+            % Initialize Expand Node List and Counter
             expandList  = [];
             expandCount = 0;
             
-            % Optimal Node List Properties
+            % Initialize Optimal Node List and Counter
             optimalList  = [];
-            optimalCount = 0;
-            
-            
-            %% Convert Structured Components to 
-            robotLocation  = astar.robot.location;
-            robotCost      = astar.robot.cost;
-            robotPath      = astar.robot.path;
-            robotGoal      = astar.robot.goal;
-            robotCount     = astar.robot.count;
-            mapIsPath      = astar.map.isPath;
-            targetLocation = astar.map.targetLocation;
-            startLocation  = astar.map.startLocation;
-            MAX_X          = astar.map.MAX_X;
-            MAX_Y          = astar.map.MAX_Y;
-            cost           = astar.cost;
-            
+            optimalCount = 0;  
                         
             % Set all of the objects as closed nodes
             for x = 1:MAX_X
@@ -234,9 +266,21 @@ classdef AStar_Structure_Fast < handle
                         closedList(closedCount,1:2) = [x,y];
                     end
                 end
-            end
-            
-            criteria = astar.map.criteria;
+            end            
+                        
+            %---------- Convert Structured Components to Non-Structures ----------
+            robotLocation  = astar.robot.location;
+            robotCost      = astar.robot.cost;
+            robotPath      = astar.robot.path;
+            robotGoal      = astar.robot.goal;
+            robotCount     = astar.robot.count;
+            mapIsPath      = astar.map.isPath;
+            targetLocation = astar.map.targetLocation;
+            startLocation  = astar.map.startLocation;
+            criteria       = astar.map.criteria;
+            MAX_X          = astar.map.MAX_X;
+            MAX_Y          = astar.map.MAX_Y;
+            cost           = astar.cost;
             
             astar.displayAlgorithmState(); % start timer
             
@@ -250,8 +294,7 @@ classdef AStar_Structure_Fast < handle
             
             while (((robotLocation(1) ~= targetLocation(1)) || (robotLocation(2) ~= targetLocation(2))) && mapIsPath == 1)
                 
-                
-                %% Get Potential Nodes
+                %---------- Get Potential Nodes ----------
                 expandCount = 0;
                 expandList = [];
 
@@ -279,8 +322,7 @@ classdef AStar_Structure_Fast < handle
                     end
                 end
                 
-                
-                %% Check Potential Nodes
+                %---------- Check Potential Nodes ----------
                 for expandedNode = 1:expandCount
                     nodeExists = 0; % flag variable used to indicate if the new node already exists in the open list 
                     for openNode = 1:openCount
@@ -301,8 +343,7 @@ classdef AStar_Structure_Fast < handle
                     end
                 end
                 
-                
-                %% Get Next Node
+                %---------- Get Next Node ----------
                 optimalCount = 0;
                 optimalList = [];
 
@@ -341,8 +382,7 @@ classdef AStar_Structure_Fast < handle
                 end
             end
             
-            
-            %% Get Optimal Path
+            %---------- Get Optimal Path ----------
             [robotCount,robotPath] = addToRobotPath(robotCount,robotPath,closedList(end,:)); % store the last node in the closed node location into the robot path
             if ((robotPath(1,1) == targetLocation(1)) && (robotPath(1,2) == targetLocation(2))) % if the last node in the closed node list is the target location
                 
@@ -361,7 +401,12 @@ classdef AStar_Structure_Fast < handle
                 astar.state.ready = -2; % indicate that there is no solution
             end
             
-            function [count,path] = addToRobotPath(count,path,location)
+            function [count,path] = addToRobotPath(count,path,location)     
+            % EXAMPLE FUNCTION CALL: Can't run function externally
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-01
+            % PURPOSE: Add element to the soltution path generated from AStar algorithm
+            % TYPE: Private Method
                 
                 count = count + 1; % increment the robot path size counter
                 path(count,1:2) = location; % add location to the robot path
@@ -370,8 +415,7 @@ classdef AStar_Structure_Fast < handle
             
             astar.displayAlgorithmState();
             
-            
-            %% Place Variables Back Into Structure
+            %---------- Place Variables Back Into Structure ----------
             astar.robot.location = robotLocation;
             astar.robot.cost     = robotCost;
             astar.robot.path     = robotPath;
@@ -379,14 +423,7 @@ classdef AStar_Structure_Fast < handle
             astar.robot.count    = robotCount;
             astar.map.isPath     = mapIsPath;
             
-            
         end
-        
-%         function displayTimeStatistics(astar) 
-%            
-%             Function has not been made yet
-%             
-%         end
         
     end
     
