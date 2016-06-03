@@ -117,10 +117,10 @@ classdef AStar_Structure_Fast < handle
             
             % Reset Figure Properties
             astar.display.figureHandle            = -1;
-            astar.display.handles.cornerCutPath   = -1;
-            astar.display.handles.cornerCutNodes  = -1;
             astar.display.handles.solutionNodes   = -1;
             astar.display.handles.solutionPath    = -1;
+            astar.display.handles.cornerCutPath   = -1;
+            astar.display.handles.cornerCutNodes  = -1;
             astar.display.handles.optimalSolution = -1;
             astar.display.handles.directionField  = -1;
             
@@ -138,8 +138,43 @@ classdef AStar_Structure_Fast < handle
             
         end
         
+        function changePathAgression(astar)
+        % EXAMPLE FUNCTION CALL: astar.changePathAgression()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Display the map with obstacles, start location, and target location
+        % TYPE: Public Method
         
-
+            astar.planner.properties.polynomialOrder = input('New Path Aggression: ');
+            if (astar.planner.properties.polynomialOrder > 14)
+                error('[Error] Path agression value must be less than 15');
+            else
+                addCornerCurPath   = 0;
+                addOptimalSolution = 0;
+                addDirectionField  = 0;
+                
+                if (ishandle(astar.display.handles.cornerCutPath))
+                    astar.removeCutCornerPath();
+                    addCornerCurPath = 1;
+                end
+                if (ishandle(astar.display.handles.optimalSolution))
+                    astar.removeOptimizedSolution();
+                    addOptimalSolution = 1;
+                end
+                if (ishandle(astar.display.handles.directionField))
+                    delete(astar.display.handles.directionField);
+                    addDirectionField = 1;
+                end
+                
+                astar.getPlannerProperties();
+                
+                if (addCornerCurPath == 1); astar.displayCutCornerPath(); end
+                if (addOptimalSolution == 1); astar.displayOptimizedSolution(); end
+                if (addDirectionField == 1); astar.displayDirectionField(); end
+            end
+        
+        end
+        
         function displayMap(astar)
         % EXAMPLE FUNCTION CALL: astar.displayMap()
         % PROGRAMMER: Frederick Wachter
@@ -200,7 +235,7 @@ classdef AStar_Structure_Fast < handle
         end
         
         function removeSolution(astar)
-        % EXAMPLE FUNCTION CALL: astar.displaySolution()
+        % EXAMPLE FUNCTION CALL: astar.removeSolution()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-02
         % PURPOSE: Removes the solution from the figure
@@ -221,7 +256,7 @@ classdef AStar_Structure_Fast < handle
         end
         
         function displayCutCornerPath(astar)
-        % EXAMPLE FUNCTION CALL: astar.displayOptimizedSolution()
+        % EXAMPLE FUNCTION CALL: astar.displayCutCornerPath()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-02
         % PURPOSE: Displays the cut corner path on the figure
@@ -255,7 +290,7 @@ classdef AStar_Structure_Fast < handle
         end
         
         function removeCutCornerPath(astar)
-        % EXAMPLE FUNCTION CALL: astar.displaySolution()
+        % EXAMPLE FUNCTION CALL: astar.removeCutCornerPath()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-02
         % PURPOSE: Removes the cut corner from the figure
@@ -306,7 +341,7 @@ classdef AStar_Structure_Fast < handle
         end
         
         function removeOptimizedSolution(astar)
-        % EXAMPLE FUNCTION CALL: astar.displaySolution()
+        % EXAMPLE FUNCTION CALL: astar.removeOptimizedSolution()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-02
         % PURPOSE: Removes the optimal solution from the figure
@@ -324,7 +359,7 @@ classdef AStar_Structure_Fast < handle
         end
         
         function displayDirectionField(astar)
-        % EXAMPLE FUNCTION CALL: astar.displayOptimizedSolution()
+        % EXAMPLE FUNCTION CALL: astar.displayDirectionField()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-02
         % PURPOSE: Displays the direction field bar graph
@@ -366,12 +401,16 @@ classdef AStar_Structure_Fast < handle
             
             astar.startAlgorithm();
             
-            astar.displayMap();
-            astar.displaySolution();
-            
-            astar.getPlannerProperties();
-            
-            solution = astar.robot.path;
+            if (astar.state.ready ~= -2)
+                astar.displayMap();
+                astar.displaySolution();
+
+                astar.getPlannerProperties();
+
+                solution = astar.robot.path;
+            else
+                solution = [];
+            end
             
         end
         
@@ -445,7 +484,7 @@ classdef AStar_Structure_Fast < handle
             
             % Run Planners and Path Propery Generator Function
             [astar.planner.cornerCutPath,astar.planner.time.cornerCutPath] = cutCornerPath(path);
-            [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(path,interpolants,polynomialOrder);
+            [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(astar.planner.cornerCutPath,interpolants,polynomialOrder);
             [astar.planner.directionField,astar.planner.time.directionField] = getDirectionField(path,MAX_X,MAX_Y);
             
             function [newPath,time] = cutCornerPath(path)
@@ -456,7 +495,9 @@ classdef AStar_Structure_Fast < handle
             % TYPE: Private Method     
                 
                 newPath = path;
-                adjustment = 1-cosd(45);
+                circleAdjustment = 1-cosd(45);
+                diagonalAdjustment = 0.25;
+                postAdjustment = diagonalAdjustment - circleAdjustment;
 
                 tic;
                 previousPosition = path(end,:);
@@ -475,56 +516,141 @@ classdef AStar_Structure_Fast < handle
                     end
                 end
                 previousPosition = position;
-
+                
+                consecutiveTurns = 0;
                 for index = (size(path,1)-2):-1:1
                     position = path(index,:);
                     if (previousPosition(1) == position(1))
                         if (previousPosition(2) > position(2))
                             if (previousDirection ~= 4)
+                                consecutiveTurns = consecutiveTurns + 1;
                                 if (previousDirection == 1)
-                                    newPath(index+1,1) = newPath(index+1,1) + adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) - adjustment;
+                                    if (consecutiveTurns < 2)
+                                         newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                         newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
                                 else
-                                    newPath(index+1,1) = newPath(index+1,1) - adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) - adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
                                 end
                                 previousDirection = 4;
-                            end
+                            else
+                                consecutiveTurns = 0;
+                            end    
                         else
                             if (previousDirection ~= 2)
+                                consecutiveTurns = consecutiveTurns + 1;
                                 if (previousDirection == 1)
-                                    newPath(index+1,1) = newPath(index+1,1) + adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) + adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
                                 else
-                                    newPath(index+1,1) = newPath(index+1,1) - adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) + adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
                                 end
                                 previousDirection = 2;
-                            end
+                            else
+                                consecutiveTurns = 0;
+                            end   
                         end
                     else
                         if (previousPosition(1) > position(1))
                             if (previousDirection ~= 1)
+                                consecutiveTurns = consecutiveTurns + 1;
                                 if (previousDirection == 2)
-                                    newPath(index+1,1) = newPath(index+1,1) - adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) - adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
                                 else
-                                    newPath(index+1,1) = newPath(index+1,1) - adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) + adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
                                 end
                                 previousDirection = 1;
-                            end
+                            else
+                                consecutiveTurns = 0;
+                            end   
                         else
                             if (previousDirection ~= 3)
+                                consecutiveTurns = consecutiveTurns + 1;
                                 if (previousDirection == 2)
-                                    newPath(index+1,1) = newPath(index+1,1) + adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) - adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
                                 else
-                                    newPath(index+1,1) = newPath(index+1,1) + adjustment;
-                                    newPath(index+1,2) = newPath(index+1,2) + adjustment;
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
                                 end
                                 previousDirection = 3;
-                            end
+                            else
+                                consecutiveTurns = 0;
+                            end   
                         end
                     end
 
@@ -609,9 +735,11 @@ classdef AStar_Structure_Fast < handle
                 astar.state.time(astar.state.count) = toc; % store algorithm running time
                 fprintf('Algorithm took %0.4f seconds to generate solution\n',astar.state.time(astar.state.count)); % notify user that the algorithm is finished
             elseif (astar.state.ready == -1) % algorithm was not setup
+                fprintf('\n'); % go to a new line
                 error('Failure to initialize algorithm'); % notify user that the algorithm was not set up properly
             elseif (astar.state.ready == -2) % algorithm could not find a solution
-                fprintf('No solution exists for given map\n'); % notify user that no solution could be found for the given map
+                fprintf('No solution exists\n'); % go to a new line
+                error('[Error] No solution exists for given map'); % notify user that no solution could be found for the given map
             end
 
         end
