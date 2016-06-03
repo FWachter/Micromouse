@@ -15,6 +15,7 @@ classdef AStar_Structure_Fast < handle
         map
         cost
         robot
+        planner
         state
         display
     end
@@ -24,6 +25,11 @@ classdef AStar_Structure_Fast < handle
     methods
         
         function astar = AStar_Structure_Fast(varargin)
+        % EXAMPLE FUNCTION CALL: astar = AStar_Structure_Fast()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Construct the structure
+        % TYPE: Constructor Method
             
             % Map Properties
             astar.map.coordinates      = [];
@@ -34,6 +40,7 @@ classdef AStar_Structure_Fast < handle
             astar.map.legend.target    = 0;
             astar.map.legend.start     = 1;
             astar.map.legend.freeSpace = 2;
+            astar.map.legend.solution  = 3;
             
             astar.map.targetLocation   = [0,0];
             astar.map.startLocation    = [0,0];
@@ -41,13 +48,17 @@ classdef AStar_Structure_Fast < handle
             astar.map.isPath           = 1;
             
             % Figure Properties
-            astar.display.obstacleCount         = 0;
-            astar.display.handles.obstacles     = [];
-            astar.display.figureHandle          = -1;
-            astar.display.handles.target        = -1;
-            astar.display.handles.robot         = -1;
-            astar.display.handles.solutionNodes = -1;
-            astar.display.handles.solutionPath  = -1;
+            astar.display.obstacleCount           = 0;
+            astar.display.handles.obstacles       = [];
+            astar.display.figureHandle            = -1;
+            astar.display.handles.target          = -1;
+            astar.display.handles.robot           = -1;
+            astar.display.handles.solutionNodes   = -1;
+            astar.display.handles.solutionPath    = -1;
+            astar.display.handles.cornerCutPath   = -1;
+            astar.display.handles.cornerCutNodes  = -1;
+            astar.display.handles.optimalSolution = -1;
+            astar.display.handles.directionField  = -1;
             
             % Robot Properties
             astar.robot.location = [0,0];
@@ -56,10 +67,25 @@ classdef AStar_Structure_Fast < handle
             astar.robot.cost     = 0;
             astar.robot.goal     = 0;
             
+            % Path Planner Properties
+            astar.planner.solution       = [];
+            astar.planner.cornerCutPath  = [];
+            astar.planner.smoothPath     = [];
+            astar.planner.directionField = [];
+            
+            astar.planner.time.cornerCutPath  = 0;
+            astar.planner.time.smoothPath     = 0;
+            astar.planner.time.directionField = 0;
+            
+            astar.planner.properties.interpolants    = 3;
+            astar.planner.properties.polynomialOrder = 3;
+            
             % Alogrithm State Properties
-            astar.state.ready = -1;
-            astar.state.time  = [];
-            astar.state.count = 0;
+            astar.state.ready           = -1;
+            astar.state.time            = [];
+            astar.state.count           = 0;
+            astar.state.figureDisplayed = 0;
+            astar.state.plannerRun      = 0;
             
             % Intiialize Cost Function
             astar.cost = [];
@@ -74,65 +100,93 @@ classdef AStar_Structure_Fast < handle
     methods
         
         function solution = runMap(astar,map,criteria)
+        % EXAMPLE FUNCTION CALL: solution = astar.runMap(map,criteria)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Take user varables and run master script for AStar
+        % INPUTS:      map - 2D array containing obstacles, target, and start location
+        %         criteria - 1) Move orthogonally, 2) Move orthogonally and diagonally
+        % OUTPUTS: solution - shortest path for the robot to move to the solution
+        % TYPE: Public Method
             
-            % Get initial map properties
+            % Get Initial Map Properties
             astar.map.coordinates  = map;
             astar.map.MAX_X        = size(map,1);
             astar.map.MAX_Y        = size(map,2);
             astar.map.findCriteria = criteria;
+            
+            % Reset Figure Properties
+            astar.display.figureHandle            = -1;
+            astar.display.handles.solutionNodes   = -1;
+            astar.display.handles.solutionPath    = -1;
+            astar.display.handles.cornerCutPath   = -1;
+            astar.display.handles.cornerCutNodes  = -1;
+            astar.display.handles.optimalSolution = -1;
+            astar.display.handles.directionField  = -1;
             
             % Reset Properties
             astar.robot.path   = [];
             astar.robot.count  = 0;
             astar.map.isPath   = 1;
             
+            % Reset State Properties
+            astar.state.figureDisplayed = 0;
+            astar.state.plannerRun      = 0;
+            
             % Run master function
             solution = astar.master();
             
         end
         
-    end
+        function changePathAgression(astar)
+        % EXAMPLE FUNCTION CALL: astar.changePathAgression()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Display the map with obstacles, start location, and target location
+        % TYPE: Public Method
         
-%% PRIVATE METHODS
-
-    methods(Access = private)
+            astar.planner.properties.polynomialOrder = input('New Path Aggression: ');
+            if (astar.planner.properties.polynomialOrder > 14)
+                error('[Error] Path agression value must be less than 15');
+            else
+                addCornerCurPath   = 0;
+                addOptimalSolution = 0;
+                addDirectionField  = 0;
+                
+                if (ishandle(astar.display.handles.cornerCutPath))
+                    astar.removeCutCornerPath();
+                    addCornerCurPath = 1;
+                end
+                if (ishandle(astar.display.handles.optimalSolution))
+                    astar.removeOptimizedSolution();
+                    addOptimalSolution = 1;
+                end
+                if (ishandle(astar.display.handles.directionField))
+                    delete(astar.display.handles.directionField);
+                    addDirectionField = 1;
+                end
+                
+                astar.getPlannerProperties();
+                
+                if (addCornerCurPath == 1); astar.displayCutCornerPath(); end
+                if (addOptimalSolution == 1); astar.displayOptimizedSolution(); end
+                if (addDirectionField == 1); astar.displayDirectionField(); end
+            end
         
-        % Pre-Processor Functions
-        function solution = master(astar)
-            
-            % Prepare Algorithm Parameters
-            astar.getMapProperties();
-            astar.initializeVariables();
-            astar.state.ready = 1;
-            
-            astar.startAlgorithm();
-            
-            astar.displayMap();
-            astar.displaySolution();
-            
-            solution = astar.robot.path;
-            
         end
         
-        function getMapProperties(astar)
-            
-            % Get start and target locations
-            [xStartLocation,yStartLocation] = find(astar.map.coordinates == astar.map.legend.start);
-            [xTargetLocation,yTargetLocation] = find(astar.map.coordinates == astar.map.legend.target);
-            
-            % Store start, target, and initial robot location into astar object
-            astar.map.startLocation = [xStartLocation,yStartLocation];
-            astar.map.targetLocation = [xTargetLocation,yTargetLocation];
-            astar.robot.location = astar.map.startLocation;
-
-        end
-
         function displayMap(astar)
+        % EXAMPLE FUNCTION CALL: astar.displayMap()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Display the map with obstacles, start location, and target location
+        % TYPE: Public Method
             
             % Initialize the figure
             astar.display.figureHandle = figure('Name','A* Algorithm','NumberTitle','off'); % initialize figure
             axis([1,astar.map.MAX_X+1,1,astar.map.MAX_Y+1]); % initialize axis spacing
             axis square; grid on; hold on; % set axis properties
+            astar.state.figureDisplayed = 1;
             
             % Display obstacles, robot, and target location
             for x = 1:astar.map.MAX_X % for all map x locations
@@ -152,30 +206,238 @@ classdef AStar_Structure_Fast < handle
         end
         
         function displaySolution(astar)
+        % EXAMPLE FUNCTION CALL: astar.displaySolution()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Displays the solution from AStar algorithm
+        % TYPE: Public Method
             
-            astar.display.handles.solutionNodes = plot(astar.robot.path(:,1)+.5,astar.robot.path(:,2)+.5,'bo'); % display the solution as nodes
+            % Check if the main figure is displaying
+            if (astar.state.figureDisplayed == 0) || ~(ishandle(astar.display.figureHandle))
+                astar.display.figureHandle = -1;
+                error('Need to run the following before displaying solution: astar.displayMap');
+            end
+        
+            % Check is the solution is already displayed
+            if (ishandle(astar.display.handles.solutionNodes))
+                delete(astar.display.handles.solutionNodes);
+            end
+            if (ishandle(astar.display.handles.solutionPath))
+                delete(astar.display.handles.solutionPath);
+            end
+            
+            % Plot Nodes and Path to figure
+            figure(astar.display.figureHandle);
+            astar.display.handles.solutionNodes = plot(astar.robot.path(2:(end-1),1)+.5,astar.robot.path(2:(end-1),2)+.5,'bo'); % display the solution as nodes
             astar.display.handles.solutionPath = plot(astar.robot.path(:,1)+.5,astar.robot.path(:,2)+.5,'b--'); % connect the solution nodes with a dotted line
             drawnow; % force MATLAB to draw the figure before continuing
             
         end
         
-        function displayAlgorithmState(astar)
+        function removeSolution(astar)
+        % EXAMPLE FUNCTION CALL: astar.removeSolution()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Removes the solution from the figure
+        % TYPE: Public Method
             
-            if (astar.state.ready == 1) % algorithm is ready to compute
-                fprintf('Starting A* Algorithm... '); % notify user that the algorithm starting
-                astar.state.count = astar.state.count + 1; tic; % start timer
-            elseif (astar.state.ready == 0) % algorithm has finished
-                astar.state.time(astar.state.count) = toc; % store algorithm running time
-                fprintf('Algorithm took %0.4f seconds to generate solution\n',astar.state.time(astar.state.count)); % notify user that the algorithm is finished
-            elseif (astar.state.ready == -1) % algorithm was not setup
-                error('Failure to initialize algorithm'); % notify user that the algorithm was not set up properly
-            elseif (astar.state.ready == -2) % algorithm could not find a solution
-                fprintf('No solution exists for given map\n'); % notify user that no solution could be found for the given map
+            if (astar.state.figureDisplayed == 0)
+                error('The solution is note current displayed.');
             end
+        
+            % Check is the solution is already displayed
+            if (ishandle(astar.display.handles.solutionNodes))
+                delete(astar.display.handles.solutionNodes);
+            end
+            if (ishandle(astar.display.handles.solutionPath))
+                delete(astar.display.handles.solutionPath);
+            end
+            
+        end
+        
+        function displayCutCornerPath(astar)
+        % EXAMPLE FUNCTION CALL: astar.displayCutCornerPath()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Displays the cut corner path on the figure
+        % TYPE: Public Method
+        
+            % Check if the main figure is displaying
+            if (astar.state.figureDisplayed == 0) || ~(ishandle(astar.display.figureHandle))
+                astar.display.figureHandle = -1;
+                error('Need to run the following before displaying solution: astar.displayMap');
+            end
+            
+            % Check if the planner properties have already been generated
+            if (astar.state.plannerRun == 0)
+                astar.getPlannerProperties();
+            end
+            
+            % Check is the optimized solution is already displayed
+            if (ishandle(astar.display.handles.cornerCutPath))
+                delete(astar.display.handles.cornerCutPath);
+            end
+            if (ishandle(astar.display.handles.cornerCutNodes))
+                delete(astar.display.handles.cornerCutNodes);
+            end
+            
+            % Plot optimal solution to the figure
+            figure(astar.display.figureHandle);
+            astar.display.handles.cornerCutNodes = plot(astar.planner.cornerCutPath(2:(end-1),1)+.5,astar.planner.cornerCutPath(2:(end-1),2)+.5,'mo'); % display the solution as nodes
+            astar.display.handles.cornerCutPath = plot(astar.planner.cornerCutPath(:,1)+.5,astar.planner.cornerCutPath(:,2)+.5,'m--'); % display the solution as nodes
+            drawnow; % force MATLAB to draw the figure before continuing
+ 
+        end
+        
+        function removeCutCornerPath(astar)
+        % EXAMPLE FUNCTION CALL: astar.removeCutCornerPath()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Removes the cut corner from the figure
+        % TYPE: Public Method
+            
+            if (astar.state.figureDisplayed == 0)
+                error('The optimal solution is not current displayed.');
+            end
+        
+            % Check is the solution is already displayed
+            if (ishandle(astar.display.handles.cornerCutPath))
+                delete(astar.display.handles.cornerCutPath);
+            end
+            if (ishandle(astar.display.handles.cornerCutNodes))
+                delete(astar.display.handles.cornerCutNodes);
+            end
+            
+        end
+        
+        function displayOptimizedSolution(astar)
+        % EXAMPLE FUNCTION CALL: astar.displayOptimizedSolution()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Displays the optomized solution from AStar algorithm
+        % TYPE: Public Method
+        
+            % Check if the main figure is displaying
+            if (astar.state.figureDisplayed == 0) || ~(ishandle(astar.display.figureHandle))
+                astar.display.figureHandle = -1;
+                error('Need to run the following before displaying solution: astar.displayMap');
+            end
+            
+            % Check if the planner properties have already been generated
+            if (astar.state.plannerRun == 0)
+                astar.getPlannerProperties();
+            end
+            
+            % Check is the optimized solution is already displayed
+            if (ishandle(astar.display.handles.optimalSolution))
+                delete(astar.display.handles.optimalSolution);
+            end
+            
+            % Plot optimal solution to the figure
+            figure(astar.display.figureHandle);
+            astar.display.handles.optimalSolution = plot(astar.planner.smoothPath(:,1)+.5,astar.planner.smoothPath(:,2)+.5,'k'); % display the solution as nodes
+            drawnow; % force MATLAB to draw the figure before continuing
+ 
+        end
+        
+        function removeOptimizedSolution(astar)
+        % EXAMPLE FUNCTION CALL: astar.removeOptimizedSolution()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Removes the optimal solution from the figure
+        % TYPE: Public Method
+            
+            if (astar.state.figureDisplayed == 0)
+                error('The optimal solution is not current displayed.');
+            end
+        
+            % Check is the solution is already displayed
+            if (ishandle(astar.display.handles.optimalSolution))
+                delete(astar.display.handles.optimalSolution);
+            end
+            
+        end
+        
+        function displayDirectionField(astar)
+        % EXAMPLE FUNCTION CALL: astar.displayDirectionField()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Displays the direction field bar graph
+        % TYPE: Public Method
+        
+            % Check if the direction field figure is already displayed
+            if (ishandle(astar.display.handles.directionField))
+                error('Direction field is already showing');
+            end
+            
+            % Check if the planner properties have already been generated
+            if (astar.state.plannerRun == 0)
+                astar.getPlannerProperties();
+            end
+            
+            % Display the 3D bar plot of direction field
+            astar.display.handles.directionField = figure('Name','Direction Field for Solution Path','NumberTitle','off'); % initialize figure
+            bar3(astar.planner.directionField);
+ 
+        end
+        
+    end
+        
+%% PRIVATE METHODS
+
+    methods(Access = private)
+        
+        function solution = master(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Run the setup functions and AStar algorithm
+        % TYPE: Private Method
+            
+            % Prepare Algorithm Parameters
+            astar.getMapProperties();
+            astar.initializeVariables();
+            astar.state.ready = 1;
+            
+            astar.startAlgorithm();
+            
+            if (astar.state.ready ~= -2)
+                astar.displayMap();
+                astar.displaySolution();
+
+                astar.getPlannerProperties();
+
+                solution = astar.robot.path;
+            else
+                solution = [];
+            end
+            
+        end
+        
+        function getMapProperties(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Get object, target, and start location from the user provided map
+        % TYPE: Private Method
+            
+            % Get start and target locations
+            [xStartLocation,yStartLocation] = find(astar.map.coordinates == astar.map.legend.start);
+            [xTargetLocation,yTargetLocation] = find(astar.map.coordinates == astar.map.legend.target);
+            
+            % Store start, target, and initial robot location into astar object
+            astar.map.startLocation = [xStartLocation,yStartLocation];
+            astar.map.targetLocation = [xTargetLocation,yTargetLocation];
+            astar.robot.location = astar.map.startLocation;
 
         end
         
         function initializeVariables(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Initialize variables before running AStar algorithm
+        % TYPE: Private Method
             
             astar.cost = @(location,target)(sqrt((target(1)-location(1))^2 + (target(2)-location(2))^2)); % set cost function
             
@@ -193,26 +455,319 @@ classdef AStar_Structure_Fast < handle
             
         end
         
-        function startAlgorithm(astar)
+        function getPlannerProperties(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-02
+        % PURPOSE: Gets the cut corner path, polynomial fit path, and the direction field from the solution path
+        % TYPE: Private Method  
+        
+            astar.state.plannerRun = 1; % set flag to indicate that the planner property generator function has been run
+                    
+            % Notify user is the map has a obstacle criteria of diagonal
+            if (astar.map.findCriteria == 2)
+                fprintf('[WARN] Please note that optimal paths for non-orthogonal barriers does not always work\n');
+            end
             
-            % Open Node List Properties
+            % Add Solution Map to Planner
+            astar.planner.solution = astar.map.coordinates;
+            for i = 2:(size(astar.robot.path,1)-1)
+                astar.planner.solution(astar.robot.path(i,1),astar.robot.path(i,2)) = astar.map.legend.solution;
+            end
+        
+            % Convert Structured Components to Variables
+            path            = astar.robot.path;
+            MAX_X           = astar.map.MAX_X;
+            MAX_Y           = astar.map.MAX_Y;
+            interpolants    = astar.planner.properties.interpolants;
+            polynomialOrder = astar.planner.properties.polynomialOrder;
+            
+            % Run Planners and Path Propery Generator Function
+            [astar.planner.cornerCutPath,astar.planner.time.cornerCutPath] = cutCornerPath(path);
+            [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(astar.planner.cornerCutPath,interpolants,polynomialOrder);
+            [astar.planner.directionField,astar.planner.time.directionField] = getDirectionField(path,MAX_X,MAX_Y);
+            
+            function [newPath,time] = cutCornerPath(path)
+            % EXAMPLE FUNCTION CALL: Can't run function externally
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-02
+            % PURPOSE: Generates a solution path with convex decimated corners
+            % TYPE: Private Method     
+                
+                newPath = path;
+                circleAdjustment = 1-cosd(45);
+                diagonalAdjustment = 0.25;
+                postAdjustment = diagonalAdjustment - circleAdjustment;
+
+                tic;
+                previousPosition = path(end,:);
+                position = path(end-1,:);
+                if (previousPosition(1) == position(1))
+                    if (previousPosition(2) > position(2))
+                        previousDirection = 4;
+                    else
+                        previousDirection = 2;
+                    end
+                else
+                    if (previousPosition(1) > position(1))
+                        previousDirection = 1;
+                    else
+                        previousDirection = 3;
+                    end
+                end
+                previousPosition = position;
+                
+                consecutiveTurns = 0;
+                for index = (size(path,1)-2):-1:1
+                    position = path(index,:);
+                    if (previousPosition(1) == position(1))
+                        if (previousPosition(2) > position(2))
+                            if (previousDirection ~= 4)
+                                consecutiveTurns = consecutiveTurns + 1;
+                                if (previousDirection == 1)
+                                    if (consecutiveTurns < 2)
+                                         newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                         newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
+                                else
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
+                                end
+                                previousDirection = 4;
+                            else
+                                consecutiveTurns = 0;
+                            end    
+                        else
+                            if (previousDirection ~= 2)
+                                consecutiveTurns = consecutiveTurns + 1;
+                                if (previousDirection == 1)
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
+                                else
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
+                                end
+                                previousDirection = 2;
+                            else
+                                consecutiveTurns = 0;
+                            end   
+                        end
+                    else
+                        if (previousPosition(1) > position(1))
+                            if (previousDirection ~= 1)
+                                consecutiveTurns = consecutiveTurns + 1;
+                                if (previousDirection == 2)
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
+                                else
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) - circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) + postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) - diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
+                                end
+                                previousDirection = 1;
+                            else
+                                consecutiveTurns = 0;
+                            end   
+                        else
+                            if (previousDirection ~= 3)
+                                consecutiveTurns = consecutiveTurns + 1;
+                                if (previousDirection == 2)
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) + postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) - diagonalAdjustment;
+                                    end
+                                else
+                                    if (consecutiveTurns < 2)
+                                        newPath(index+1,1) = newPath(index+1,1) + circleAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + circleAdjustment;
+                                    else
+                                        if (consecutiveTurns == 2)
+                                            newPath(index+2,1) = newPath(index+2,1) - postAdjustment;
+                                            newPath(index+2,2) = newPath(index+2,2) - postAdjustment;
+                                        end
+                                        newPath(index+1,1) = newPath(index+1,1) + diagonalAdjustment;
+                                        newPath(index+1,2) = newPath(index+1,2) + diagonalAdjustment;
+                                    end
+                                end
+                                previousDirection = 3;
+                            else
+                                consecutiveTurns = 0;
+                            end   
+                        end
+                    end
+
+                    previousPosition = position;
+                end
+                time = toc;
+                
+            end
+            
+            function [smoothPath,time] = getPolynomialPath(path,interpolants,polynomialOrder)
+            % EXAMPLE FUNCTION CALL: Can't run function externally
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-02
+            % PURPOSE: Generates a polynomail fitted solution with desired agression
+            % TYPE: Private Method     
+                
+                x = path(:,1);
+                y = path(:,2);
+
+                tic;
+                interpolateX = linspace(x(end),x(end-1),interpolants);
+                interpolateY = linspace(y(end),y(end-1),interpolants);
+                
+                for index = (length(x)-2):-1:1
+                    interpolateX = [interpolateX(1:end-1),linspace(x(index+1),x(index),interpolants)];
+                    interpolateY = [interpolateY(1:end-1),linspace(y(index+1),y(index),interpolants)];
+                end
+                
+                windowWidth = 15;
+                smoothX = sgolayfilt(interpolateX, polynomialOrder, windowWidth);
+                smoothY = sgolayfilt(interpolateY, polynomialOrder, windowWidth);
+                smoothPath = [smoothX',smoothY'];
+                time = toc;
+                
+            end
+            
+            function [directionField,time] = getDirectionField(path,MAX_X,MAX_Y)
+            % EXAMPLE FUNCTION CALL: Can't run function externally
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-02
+            % PURPOSE: Generates the direction field from the soltion path
+            % TYPE: Private Method 
+               
+                directionField = zeros(MAX_X,MAX_Y);
+                
+                tic;
+                for index = (size(path,1)-1):-1:1
+                    previousPosition = path(index+1,:);
+                    position = path(index,:);
+
+                    if (previousPosition(1) == position(1))
+                        if (previousPosition(2) > position(2))
+                            directionField(previousPosition(1),previousPosition(2)) = 4;
+                        else
+                            directionField(previousPosition(1),previousPosition(2)) = 2;
+                        end
+                    else
+                        if (previousPosition(1) > position(1))
+                            directionField(previousPosition(1),previousPosition(2)) = 1;
+                        else
+                            directionField(previousPosition(1),previousPosition(2)) = 3;
+                        end
+                    end
+                end
+                time = toc;
+                
+            end
+            
+        end
+        
+        function displayAlgorithmState(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Display the current status of the algorithm
+        % TYPE: Private Method
+            
+            if (astar.state.ready == 1) % algorithm is ready to compute
+                fprintf('Starting A* Algorithm... '); % notify user that the algorithm starting
+                astar.state.count = astar.state.count + 1; tic; % start timer
+            elseif (astar.state.ready == 0) % algorithm has finished
+                astar.state.time(astar.state.count) = toc; % store algorithm running time
+                fprintf('Algorithm took %0.4f seconds to generate solution\n',astar.state.time(astar.state.count)); % notify user that the algorithm is finished
+            elseif (astar.state.ready == -1) % algorithm was not setup
+                fprintf('\n'); % go to a new line
+                error('Failure to initialize algorithm'); % notify user that the algorithm was not set up properly
+            elseif (astar.state.ready == -2) % algorithm could not find a solution
+                fprintf('No solution exists\n'); % go to a new line
+                error('[Error] No solution exists for given map'); % notify user that no solution could be found for the given map
+            end
+
+        end
+        
+        function startAlgorithm(astar)
+        % EXAMPLE FUNCTION CALL: Can't run function externally
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-06-01
+        % PURPOSE: Run the AStar algorithm
+        % TYPE: Private Method
+            
+            % Initialize Open Node List and Counter
             openList  = [];
             openCount = 0;
             
-            % Closed Node List Properties
+            % Initialize Closed Node List and Counter
             closedList  = [];
             closedCount = 0;
             
-            % Expand Node List Properties
+            % Initialize Expand Node List and Counter
             expandList  = [];
             expandCount = 0;
             
-            % Optimal Node List Properties
+            % Initialize Optimal Node List and Counter
             optimalList  = [];
-            optimalCount = 0;
-            
-            
-            %% Convert Structured Components to 
+            optimalCount = 0;          
+                        
+            %---------- Convert Structured Components to Variables ----------
             robotLocation  = astar.robot.location;
             robotCost      = astar.robot.cost;
             robotPath      = astar.robot.path;
@@ -221,11 +776,11 @@ classdef AStar_Structure_Fast < handle
             mapIsPath      = astar.map.isPath;
             targetLocation = astar.map.targetLocation;
             startLocation  = astar.map.startLocation;
+            criteria       = astar.map.criteria;
             MAX_X          = astar.map.MAX_X;
             MAX_Y          = astar.map.MAX_Y;
             cost           = astar.cost;
-            
-                        
+                                    
             % Set all of the objects as closed nodes
             for x = 1:MAX_X
                 for y = 1:MAX_Y
@@ -234,9 +789,7 @@ classdef AStar_Structure_Fast < handle
                         closedList(closedCount,1:2) = [x,y];
                     end
                 end
-            end
-            
-            criteria = astar.map.criteria;
+            end    
             
             astar.displayAlgorithmState(); % start timer
             
@@ -250,8 +803,7 @@ classdef AStar_Structure_Fast < handle
             
             while (((robotLocation(1) ~= targetLocation(1)) || (robotLocation(2) ~= targetLocation(2))) && mapIsPath == 1)
                 
-                
-                %% Get Potential Nodes
+                %---------- Get Potential Nodes ----------
                 expandCount = 0;
                 expandList = [];
 
@@ -279,8 +831,7 @@ classdef AStar_Structure_Fast < handle
                     end
                 end
                 
-                
-                %% Check Potential Nodes
+                %---------- Check Potential Nodes ----------
                 for expandedNode = 1:expandCount
                     nodeExists = 0; % flag variable used to indicate if the new node already exists in the open list 
                     for openNode = 1:openCount
@@ -301,8 +852,7 @@ classdef AStar_Structure_Fast < handle
                     end
                 end
                 
-                
-                %% Get Next Node
+                %---------- Get Next Node ----------
                 optimalCount = 0;
                 optimalList = [];
 
@@ -341,8 +891,7 @@ classdef AStar_Structure_Fast < handle
                 end
             end
             
-            
-            %% Get Optimal Path
+            %---------- Get Optimal Path ----------
             [robotCount,robotPath] = addToRobotPath(robotCount,robotPath,closedList(end,:)); % store the last node in the closed node location into the robot path
             if ((robotPath(1,1) == targetLocation(1)) && (robotPath(1,2) == targetLocation(2))) % if the last node in the closed node list is the target location
                 
@@ -361,7 +910,12 @@ classdef AStar_Structure_Fast < handle
                 astar.state.ready = -2; % indicate that there is no solution
             end
             
-            function [count,path] = addToRobotPath(count,path,location)
+            function [count,path] = addToRobotPath(count,path,location)     
+            % EXAMPLE FUNCTION CALL: Can't run function externally
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-01
+            % PURPOSE: Add element to the soltution path generated from AStar algorithm
+            % TYPE: Private Method
                 
                 count = count + 1; % increment the robot path size counter
                 path(count,1:2) = location; % add location to the robot path
@@ -370,8 +924,7 @@ classdef AStar_Structure_Fast < handle
             
             astar.displayAlgorithmState();
             
-            
-            %% Place Variables Back Into Structure
+            %---------- Place Variables Back Into Structure ----------
             astar.robot.location = robotLocation;
             astar.robot.cost     = robotCost;
             astar.robot.path     = robotPath;
@@ -379,14 +932,7 @@ classdef AStar_Structure_Fast < handle
             astar.robot.count    = robotCount;
             astar.map.isPath     = mapIsPath;
             
-            
         end
-        
-%         function displayTimeStatistics(astar) 
-%            
-%             Function has not been made yet
-%             
-%         end
         
     end
     

@@ -8,12 +8,31 @@
 % Please refer to the Wiki for instructions on how to use this script
 % GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
 
-cd(pwd)
-[fileName,pathName] = uigetfile('*.mat');
-load([pathName,'/',fileName]);
-map = map.data;
 
-astar = AStar_Structure_Fast;
-astar.runMap(map,1);
+% Go to the folder that this file is from
+filePath = mfilename('fullpath');
+cd(filePath(1:(find(filePath=='/',1,'last')-1)));
+clear filePath;
+
+% Uncomment the desired map
+% load('../maps/20x20/sparse/map1.mat');
+% load('../maps/20x20/sparse/map2.mat');
+% load('../maps/20x20/orthogonal/map1.mat');
+load('../maps/20x20/orthogonal/map2.mat');
+% load('../maps/20x20/orthogonal/map3.mat');
+% load('../maps/10x10/orthogonal/map1.mat');
+% load('../maps/10x10/diagonal/map1.mat');
+% load('../maps/10x10/diagonal/map2.mat');
+
+% Initialize the AStar structure if it does not exist
+if ~(exist('astar','var'))
+    astar = AStar_Structure_Fast;
+end
+
+% Run AStar algorithm
+solution = astar.runMap(map.data,map.criteria);
+
+% Display optimized solution
+astar.displayOptimizedSolution();
 
 
