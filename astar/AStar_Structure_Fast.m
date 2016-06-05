@@ -151,7 +151,6 @@ classdef AStar_Structure_Fast < handle
             else
                 addCornerCurPath   = 0;
                 addOptimalSolution = 0;
-                addDirectionField  = 0;
                 
                 if (ishandle(astar.display.handles.cornerCutPath))
                     astar.removeCutCornerPath();
@@ -161,16 +160,11 @@ classdef AStar_Structure_Fast < handle
                     astar.removeOptimizedSolution();
                     addOptimalSolution = 1;
                 end
-                if (ishandle(astar.display.handles.directionField))
-                    delete(astar.display.handles.directionField);
-                    addDirectionField = 1;
-                end
                 
                 astar.getPlannerProperties();
                 
                 if (addCornerCurPath == 1); astar.displayCutCornerPath(); end
                 if (addOptimalSolution == 1); astar.displayOptimizedSolution(); end
-                if (addDirectionField == 1); astar.displayDirectionField(); end
             end
         
         end
