@@ -371,7 +371,12 @@ classdef AStar_Structure_Fast < handle
             
             % Display the 3D bar plot of direction field
             astar.display.handles.directionField = figure('Name','Direction Field for Solution Path','NumberTitle','off'); % initialize figure
-            bar3(astar.planner.directionField);
+            dataHandle = bar3(astar.planner.directionField);
+            shading interp;
+            for handle = 1:length(dataHandle)
+                set(dataHandle(handle),'CData',get(dataHandle(handle),'ZData'));
+                set(dataHandle(handle),'EdgeColor','k');
+            end
  
         end
         
