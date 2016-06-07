@@ -77,12 +77,11 @@ classdef AStar_Structure_Fast < handle
             astar.planner.time.smoothPath     = 0;
             astar.planner.time.directionField = 0;
             
-            astar.planner.properties.interpolants    = 3;
             astar.planner.properties.polynomialOrder = 3;
             
             % Alogrithm State Properties
-            astar.state.ready           = -1;
             astar.state.time            = [];
+            astar.state.ready           = -1;
             astar.state.count           = 0;
             astar.state.figureDisplayed = 0;
             astar.state.plannerRun      = 0;
@@ -114,6 +113,13 @@ classdef AStar_Structure_Fast < handle
             astar.map.MAX_X        = size(map,1);
             astar.map.MAX_Y        = size(map,2);
             astar.map.findCriteria = criteria;
+            
+            % Set Interpolant Value Base on Move Criteria
+            if (criteria == 2)
+                astar.planner.properties.interpolants = 5;
+            else
+                astar.planner.properties.interpolants = 3;
+            end
             
             % Reset Figure Properties
             astar.display.figureHandle            = -1;
@@ -194,6 +200,7 @@ classdef AStar_Structure_Fast < handle
                     if (astar.map.coordinates(x,y) == astar.map.legend.obstacle) % if the current location is an obstacle
                         astar.display.obstacleCount = astar.display.obstacleCount + 1; % increment obstacle counter
                         astar.display.handles.obstacles(astar.display.obstacleCount) = plot(x+.5,y+.5,'ro'); % show the obstacle
+                        displayBorders(astar.map.coordinates,x,y,astar.map.legend.obstacle); % 
                     elseif (astar.map.coordinates(x,y) == astar.map.legend.target) % if the current location is the target
                         astar.display.handles.target = plot(x+.5,y+.5,'gd'); % show the target
                     elseif (astar.map.coordinates(x,y) == astar.map.legend.start) % if the current locaiton is the robot
@@ -202,6 +209,26 @@ classdef AStar_Structure_Fast < handle
                 end
             end
             drawnow; % force MATLAB to draw the figure before continuing
+            
+            function displayBorders(map,x,y,obstacle)
+            % EXAMPLE FUNCTION CALL: displayBorders(astar.map.coordinates,x,y,astar.map.legend.obstacle)
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-06-07
+            % PURPOSE: Displays lines between neighboring obstacles
+            % TYPE: Method within astar.DisplayMap()
+                
+                if (x ~= 1)
+                    if (map(x-1,y) == obstacle)
+                        line([x-0.5,x+0.5],[y+0.5,y+0.5],'Color','r');
+                    end
+                end
+                if (y ~= 1)
+                    if (map(x,y-1) == obstacle)
+                        line([x+0.5,x+0.5],[y-0.5,y+0.5],'Color','r');
+                    end
+                end
+                
+            end
             
         end
         
@@ -262,30 +289,34 @@ classdef AStar_Structure_Fast < handle
         % PURPOSE: Displays the cut corner path on the figure
         % TYPE: Public Method
         
-            % Check if the main figure is displaying
-            if (astar.state.figureDisplayed == 0) || ~(ishandle(astar.display.figureHandle))
-                astar.display.figureHandle = -1;
-                error('Need to run the following before displaying solution: astar.displayMap');
+            if (astar.map.findCriteria == 1)
+                % Check if the main figure is displaying
+                if (astar.state.figureDisplayed == 0) || ~(ishandle(astar.display.figureHandle))
+                    astar.display.figureHandle = -1;
+                    error('Need to run the following before displaying solution: astar.displayMap');
+                end
+
+                % Check if the planner properties have already been generated
+                if (astar.state.plannerRun == 0)
+                    astar.getPlannerProperties();
+                end
+
+                % Check is the optimized solution is already displayed
+                if (ishandle(astar.display.handles.cornerCutPath))
+                    delete(astar.display.handles.cornerCutPath);
+                end
+                if (ishandle(astar.display.handles.cornerCutNodes))
+                    delete(astar.display.handles.cornerCutNodes);
+                end
+
+                % Plot optimal solution to the figure
+                figure(astar.display.figureHandle);
+                astar.display.handles.cornerCutNodes = plot(astar.planner.cornerCutPath(2:(end-1),1)+.5,astar.planner.cornerCutPath(2:(end-1),2)+.5,'mo'); % display the solution as nodes
+                astar.display.handles.cornerCutPath = plot(astar.planner.cornerCutPath(:,1)+.5,astar.planner.cornerCutPath(:,2)+.5,'m--'); % display the solution as nodes
+                drawnow; % force MATLAB to draw the figure before continuing
+            else
+                fprintf('[Warn] Convex decimator paths are not generated for paths with diagonal movements.\n');
             end
-            
-            % Check if the planner properties have already been generated
-            if (astar.state.plannerRun == 0)
-                astar.getPlannerProperties();
-            end
-            
-            % Check is the optimized solution is already displayed
-            if (ishandle(astar.display.handles.cornerCutPath))
-                delete(astar.display.handles.cornerCutPath);
-            end
-            if (ishandle(astar.display.handles.cornerCutNodes))
-                delete(astar.display.handles.cornerCutNodes);
-            end
-            
-            % Plot optimal solution to the figure
-            figure(astar.display.figureHandle);
-            astar.display.handles.cornerCutNodes = plot(astar.planner.cornerCutPath(2:(end-1),1)+.5,astar.planner.cornerCutPath(2:(end-1),2)+.5,'mo'); % display the solution as nodes
-            astar.display.handles.cornerCutPath = plot(astar.planner.cornerCutPath(:,1)+.5,astar.planner.cornerCutPath(:,2)+.5,'m--'); % display the solution as nodes
-            drawnow; % force MATLAB to draw the figure before continuing
  
         end
         
@@ -295,17 +326,21 @@ classdef AStar_Structure_Fast < handle
         % DATE CREATED: 2016-06-02
         % PURPOSE: Removes the cut corner from the figure
         % TYPE: Public Method
-            
-            if (astar.state.figureDisplayed == 0)
-                error('The optimal solution is not current displayed.');
-            end
         
-            % Check is the solution is already displayed
-            if (ishandle(astar.display.handles.cornerCutPath))
-                delete(astar.display.handles.cornerCutPath);
-            end
-            if (ishandle(astar.display.handles.cornerCutNodes))
-                delete(astar.display.handles.cornerCutNodes);
+            if (astar.map.findCriteria == 1)
+                if (astar.state.figureDisplayed == 0)
+                    error('The optimal solution is not current displayed.');
+                end
+
+                % Check is the solution is already displayed
+                if (ishandle(astar.display.handles.cornerCutPath))
+                    delete(astar.display.handles.cornerCutPath);
+                end
+                if (ishandle(astar.display.handles.cornerCutNodes))
+                    delete(astar.display.handles.cornerCutNodes);
+                end
+            else
+                fprintf('[Warn] Convex decimator paths are not generated for paths with diagonal movements.\n');
             end
             
         end
@@ -464,10 +499,10 @@ classdef AStar_Structure_Fast < handle
         
             astar.state.plannerRun = 1; % set flag to indicate that the planner property generator function has been run
                     
-            % Notify user is the map has a obstacle criteria of diagonal
-            if (astar.map.findCriteria == 2)
-                fprintf('[WARN] Please note that optimal paths for non-orthogonal barriers does not always work\n');
-            end
+%             % Notify user is the map has a obstacle criteria of diagonal
+%             if (astar.map.findCriteria == 2)
+%                 fprintf('[WARN] Please note that optimal paths for non-orthogonal barriers does not always work\n');
+%             end
             
             % Add Solution Map to Planner
             astar.planner.solution = astar.map.coordinates;
@@ -483,9 +518,14 @@ classdef AStar_Structure_Fast < handle
             polynomialOrder = astar.planner.properties.polynomialOrder;
             
             % Run Planners and Path Propery Generator Function
-            [astar.planner.cornerCutPath,astar.planner.time.cornerCutPath] = cutCornerPath(path);
-            [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(astar.planner.cornerCutPath,interpolants,polynomialOrder);
-            [astar.planner.directionField,astar.planner.time.directionField] = getDirectionField(path,MAX_X,MAX_Y);
+            if (astar.map.findCriteria == 1) % if diagonal movements are not allowed
+                [astar.planner.cornerCutPath,astar.planner.time.cornerCutPath] = cutCornerPath(path);
+                [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(astar.planner.cornerCutPath,interpolants,polynomialOrder);
+                [astar.planner.directionField,astar.planner.time.directionField] = getDirectionField(path,MAX_X,MAX_Y);
+            else % if diagonal movements are allowed
+                [astar.planner.smoothPath,astar.planner.time.smoothPath] = getPolynomialPath(path,interpolants,polynomialOrder);
+                [astar.planner.directionField,astar.planner.time.directionField] = getDirectionField(path,MAX_X,MAX_Y);
+            end
             
             function [newPath,time] = cutCornerPath(path)
             % EXAMPLE FUNCTION CALL: Can't run function externally
