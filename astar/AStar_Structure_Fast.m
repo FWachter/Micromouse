@@ -1,3 +1,60 @@
+%ASTAR_STRUCTURE_FAST   Class that allows for the A* algorithm to be run on maps
+%   
+%   ASTAR_STRUCTURE_FAST
+%   initializes the A* class
+%
+%   ASTAR_STRUCTURE_FAST.runMap(map.data, map.criteria)
+%   runs the A* algorithm on a provided map with provided map criteria.
+%
+%   ASTAR_STRUCTURE_FAST.displayMap
+%   loads a figure showing the previously loaded map's walls.
+%
+%   ASTAR_STRUCTURE_FAST.planner.solution
+%   returns the solution path using X and Y coordinates.
+%
+%   ASTAR_STRUCTURE_FAST.planner.cornerCutPath
+%   returns the solution path using X and Y coordinates with all corners
+%   cut from the original solution.
+%
+%   ASTAR_STRUCTURE_FAST.planner.smoothPath
+%   returns the solution path using X and Y coordinates with polynomial
+%   interpolation of the corner cut path.
+%
+%   ASTAR_STRUCTURE_FAST.displaySolution
+%   displays the solution on the figure. This is shown by default when the
+%   runMap() function is run.
+%
+%   ASTAR_STRUCTURE_FAST.displayCutCornerPath
+%   displays the corner cut path on the figure.
+%
+%   ASTAR_STRUCTURE_FAST.displayOptimizedSolution
+%   displays the polynomial interpolated solution on the figure.
+%
+%   ASTAR_STRUCTURE_FAST.removeSolution
+%   removes the displayed solution path from the figure if it is
+%   displaying.
+%
+%   ASTAR_STRUCTURE_FAST.removeCutCornerPath
+%   removes the displayed cut corner path from the figure if it is
+%   displaying.
+%
+%   ASTAR_STRUCTURE_FAST.removeOptimizedSolution
+%   removes the displayed plynomial interpolation path from the figure if
+%   it is displaying.
+%
+%   ASTAR_STRUCTURE_FAST.changePathAgression
+%   adjust the order of the polynomial interpolation solution. The default
+%   is 3. A prompt will display asking for a new order for the polynomial.
+%   Enter the desired positive interger for the order.
+%
+%   Rerun the map to get the new polynomial interpolation path with
+%   the desired order of the polynomial.
+%
+%   See also EXAMPLESCRIPT, MAPGENERATOR, RUNMAPGENERATOR.
+%
+%   Please refer to the wiki for more information: 
+%   https://github.com/FWachter/Micromouse/wiki/MATLAB
+
 %% ---- PROGRAM INFORMAITON ----
 % PROGRAMMER: Frederick Wachter
 % DATE CREATED: 2016-06-01
@@ -6,7 +63,7 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 
 classdef AStar_Structure_Fast < handle

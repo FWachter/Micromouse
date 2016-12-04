@@ -5,8 +5,9 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLABs
 
+cutCorners;
 x = newPath(:,1);
 y = newPath(:,2);
 

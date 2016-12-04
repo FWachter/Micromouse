@@ -5,7 +5,7 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 % -------------------------------
 % Need to fix case for lane shift

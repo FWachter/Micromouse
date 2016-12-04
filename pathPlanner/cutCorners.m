@@ -5,7 +5,7 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 % If AStar has not been run yet
 if ~(exist('astar','var'))
@@ -95,7 +95,6 @@ for index = (size(path,1)-2):-1:1
 end
 time = toc;
 fprintf('Corner cutting computation time: %.6f\n',time);
-
-figure; plot(newPath(:,1),newPath(:,2));
+astar.displayMap; plot(newPath(:,1)+0.5,newPath(:,2)+0.5);
 
 
