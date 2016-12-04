@@ -1,3 +1,17 @@
+%MAPGENERATOR   Class that allows for the user to create maps for A* algorithm
+%
+%   MAPGENERATOR
+%   initializes the map generator class
+%
+%   MAPGENERATOR.generateMap
+%   runs the relevent functions to get desired format from user and then
+%   brings up a figure that the user can then use to generate a map.
+%
+%   See also RUNMAPGENERATOR, EXAMPLESCRIPT, ASTAR_STRUCTURE_FAST.
+%
+%   Please refer to the wiki for more information: 
+%   https://github.com/FWachter/Micromouse/wiki/MATLAB
+
 %% ---- PROGRAM INFORMAITON ----
 % PROGRAMMER: Frederick Wachter
 % DATE CREATED: 2016-06-01
@@ -6,7 +20,7 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 
 classdef mapGenerator < handle

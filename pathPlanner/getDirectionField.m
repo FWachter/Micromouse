@@ -5,7 +5,7 @@
 % CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
-% GITHUB WIKI: www.github.com/FWchter/Micromouse/Wiki
+% GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 % If AStar has not been run yet
 if ~(exist('astar','var'))
@@ -43,6 +43,12 @@ end
 time = toc;
 
 fprintf('Direction field computation time: %.6f\n',time);
-figure; bar3(directionField);
+figure; barHandle = bar3(directionField);
+xlabel('X Position'); ylabel('Y Position'); zlabel('Movement Direction');
+for k = 1:length(barHandle) % adjust color scheme to height
+    zdata = barHandle(k).ZData;
+    barHandle(k).CData = zdata;
+    barHandle(k).FaceColor = 'interp';
+end
 
 
