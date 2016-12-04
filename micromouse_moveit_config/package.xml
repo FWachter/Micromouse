@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>micromouse_moveit_config</name>
+  <version>0.0.1</version>
+  <description>The micromouse_description package</description>
+
+  <maintainer email="wachterfreddy@gmail.com">Frederick Wachter</maintainer>
+
+  <license>BSD</license>
+
+  <author email="wachterfreddy@gmail.com">Frederick WAchter</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>xacro</exec_depend>
+</package>
