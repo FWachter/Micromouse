@@ -30,6 +30,11 @@
 %   ASTAR_STRUCTURE_FAST.displayOptimizedSolution
 %   displays the polynomial interpolated solution on the figure.
 %
+%   ASTAR_STRUCTURE_FAST.displayDirectionField
+%   displays the movements of the robot as a 3D bar graph where the 1
+%   represents movement in the positive y direction, 2 for positive x, 3
+%   for negative y, and 4 for negative x.
+%
 %   ASTAR_STRUCTURE_FAST.removeSolution
 %   removes the displayed solution path from the figure if it is
 %   displaying.
@@ -469,7 +474,12 @@ classdef AStar_Structure_Fast < handle
             
             % Display the 3D bar plot of direction field
             astar.display.handles.directionField = figure('Name','Direction Field for Solution Path','NumberTitle','off'); % initialize figure
-            bar3(astar.planner.directionField);
+            barHandle = bar3(astar.planner.directionField);
+            for bar = 1:length(barHandle)
+                zdata = barHandle(bar).ZData;
+                barHandle(bar).CData = zdata;
+                barHandle(bar).FaceColor = 'interp';
+            end
  
         end
         
