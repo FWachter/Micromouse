@@ -1,15 +1,17 @@
 %% ---- PROGRAM INFORMAITON ----
-% PROGRAMMER: Frederick Wachter
+% PROGRAMMER: Frederick Wachter - wachterfreddy@gmail.com
 % DATE CREATED: 2016-12-10
-% PURPOSE: AStar algorithm class
-% REFERENCE: http://ch.mathworks.com/matlabcentral/fileexchange/26248-a---a-star--search-for-path-planning-tutorial
-% CONTACT INFO: wachterfreddy@gmail.com
+% PURPOSE: Micromouse simulator class
 
-% Please refer to the Wiki for instructions on how to use this script
+% Please refer to the Wiki for instructions on how to use this class
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 
 classdef simulator < handle
+    
+    properties
+        
+    end
     
     properties(SetAccess = protected)
         map
@@ -89,72 +91,18 @@ classdef simulator < handle
             micromouse.getRobotOrientation();
             micromouse.updateLineOfSight();
             
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
+            micromouse.exampleMovement();
+
+        end
+        
+        function moveRobot(micromouse, x, y)
             
-            micromouse.robot.direction = 2;
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
+            figure(micromouse.display.figureHandle);
+            set(micromouse.display.handles.robot, 'XData', x, 'YData', y);
+            micromouse.robot.location = [x, y];
+            drawnow;
             
-            micromouse.robot.direction = 1;
-            micromouse.robot.location(2) = micromouse.robot.location(2) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(2) = micromouse.robot.location(2) + 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 2;
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 3;
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 2;
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 1;
-            micromouse.robot.location(2) = micromouse.robot.location(2) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(2) = micromouse.robot.location(2) + 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 2;
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 3;
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
-            micromouse.updateLineOfSight();
-            
-            micromouse.robot.direction = 2;
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
-            micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            micromouse.updateLineOfSight();
+            micromouse.collisionDetection();
             
         end
         
@@ -165,12 +113,14 @@ classdef simulator < handle
 
     methods (Access = private)
         
+        % Robot Function
+        
         function getRobotOrientation(micromouse)
         % EXAMPLE FUNCTION CALL: micromouse.getRobotOrientation()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Get initial orientation of the robot
-            
+        
             if (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)+1) == micromouse.map.legend.freeSpace)
                 micromouse.robot.direction = 1;
             elseif (micromouse.map.coordinates(micromouse.robot.location(1)+1, micromouse.robot.location(2)+1) == micromouse.map.legend.freeSpace)
@@ -181,9 +131,161 @@ classdef simulator < handle
                 micromouse.robot.direction = 4;
             end
             
+            obstacles = getAssumedBoundaries(micromouse.map, micromouse.robot.location(1), micromouse.robot.location(2), micromouse.robot.direction);
+            micromouse.addObstacles(obstacles);
+            
+            figure(micromouse.display.figureHandle);
+            displayedLines = displayLines(micromouse.map, obstacles);
+            micromouse.display.displayedLines = [micromouse.display.displayedLines; displayedLines];
+            
+            function obstacles = getAssumedBoundaries(map, robotX, robotY, robotDirection)
+            % EXAMPLE FUNCTION CALL: micromouse.getRobotOrientation()
+            % PROGRAMMER: Frederick Wachter
+            % DATE CREATED: 2016-10-11
+            % PURPOSE: Get initial borders of robot at robot placement
+               
+                possibleObstacleX = [];
+                possibleObstacleY = [];
+                
+                if (robotDirection == 1)
+                    if ((robotX > 1) && (robotX < map.maxX))
+                        if (robotY > 1)
+                            possibleObstacleX = [robotX-1, robotX-1, robotX, robotX+1, robotX+1];
+                            possibleObstacleY = [robotY, robotY-1, robotY-1, robotY-1, robotY];
+                        else
+                            possibleObstacleX = [robotX-1, robotX+1];
+                            possibleObstacleY = [robotY, robotY];
+                        end
+                    elseif (robotX > 1)
+                        if (robotY > 1)
+                            possibleObstacleX = [robotX-1, robotX-1, robotX];
+                            possibleObstacleY = [robotY, robotY-1, robotY-1];
+                        else
+                            possibleObstacleX = [robotX-1];
+                            possibleObstacleY = [robotY];
+                        end
+                    elseif (robotX < map.maxX)
+                        if (robotY > 1)
+                            possibleObstacleX = [robotX, robotX+1, robotX+1];
+                            possibleObstacleY = [robotY-1, robotY-1, robotY];
+                        else
+                            possibleObstacleX = [robotX+1];
+                            possibleObstacleY = [robotY];
+                        end
+                    end
+                elseif (robotDirection == 2)
+                    if ((robotY > 1) && (robotY < map.maxY))
+                        if (robotX > 1)
+                            possibleObstacleX = [robotX, robotX-1, robotX-1, robotX-1, robotX];
+                            possibleObstacleY = [robotY+1, robotY+1, robotY, robotY-1, robotY-1];
+                        else
+                            possibleObstacleX = [robotX, robotX];
+                            possibleObstacleY = [robotY+1, robotY-1];
+                        end
+                    elseif (robotY > 1)
+                        if (robotX > 1)
+                            possibleObstacleX = [robotX-1, robotX-1, robotX];
+                            possibleObstacleY = [robotY, robotY-1, robotY-1];
+                        else
+                            possibleObstacleX = [robotX];
+                            possibleObstacleY = [robotY-1];
+                        end
+                    elseif (robotY < map.maxY)
+                        if (robotX > 1)
+                            possibleObstacleX = [robotX, robotX-1, robotX-1];
+                            possibleObstacleY = [robotY+1, robotY+1, robotY];
+                        else
+                            possibleObstacleX = [robotX];
+                            possibleObstacleY = [robotY+1];
+                        end
+                    end
+                elseif (robotDirection == 3)
+                    if ((robotX > 1) && (robotX < map.maxX))
+                        if (robotY < map.maxY)
+                            possibleObstacleX = [robotX-1, robotX-1, robotX, robotX+1, robotX+1];
+                            possibleObstacleY = [robotY, robotY+1, robotY+1, robotY+1, robotY];
+                        else
+                            possibleObstacleX = [robotX-1, robotX+1];
+                            possibleObstacleY = [robotY, robotY];
+                        end
+                    elseif (robotX > 1)
+                        if (robotY < map.maxY)
+                            possibleObstacleX = [robotX-1, robotX-1, robotX];
+                            possibleObstacleY = [robotY, robotY+1, robotY+1];
+                        else
+                            possibleObstacleX = [robotX-1];
+                            possibleObstacleY = [robotY];
+                        end
+                    elseif (robotX < map.maxX)
+                        if (robotY < map.maxY)
+                            possibleObstacleX = [robotX, robotX+1, robotX+1];
+                            possibleObstacleY = [robotY+1, robotY+1, robotY];
+                        else
+                            possibleObstacleX = [robotX+1];
+                            possibleObstacleY = [robotY];
+                        end
+                    end
+                else
+                    if ((robotY > 1) && (robotY < map.maxY))
+                        if (robotX < map.maxX)
+                            possibleObstacleX = [robotX, robotX+1, robotX+1, robotX+1, robotX];
+                            possibleObstacleY = [robotY+1, robotY+1, robotY, robotY-1, robotY-1];
+                        else
+                            possibleObstacleX = [robotX, robotX];
+                            possibleObstacleY = [robotY+1, robotY-1];
+                        end
+                    elseif (robotY > 1)
+                        if (robotX < map.maxX)
+                            possibleObstacleX = [robotX+1, robotX+1, robotX];
+                            possibleObstacleY = [robotY, robotY-1, robotY-1];
+                        else
+                            possibleObstacleX = [robotX];
+                            possibleObstacleY = [robotY-1];
+                        end
+                    elseif (robotY < map.maxY)
+                        if (robotX < map.maxX)
+                            possibleObstacleX = [robotX, robotX+1, robotX+1];
+                            possibleObstacleY = [robotY+1, robotY+1, robotY];
+                        else
+                            possibleObstacleX = [robotX];
+                            possibleObstacleY = [robotY+1];
+                        end
+                    end
+                end
+                
+                obstacles = [possibleObstacleX', possibleObstacleY'];
+                
+            end
+            
+            function displayedLines = displayLines(map, obstacles)
+
+                displayedLines = [];
+                for obstacle = 1:size(obstacles, 1)
+                    if (map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == map.legend.obstacle)
+                        for comparisonObstacle = 1:size(obstacles, 1)
+                            if (map.coordinates(obstacles(comparisonObstacle, 1), obstacles(comparisonObstacle, 2)) == map.legend.obstacle)
+                                if (obstacle ~= comparisonObstacle)
+                                    if (sqrt((obstacles(obstacle, 1) - obstacles(comparisonObstacle, 1))^2 + (obstacles(obstacle, 2) - obstacles(comparisonObstacle, 2))^2) == 1)
+                                        line([obstacles(obstacle, 1), obstacles(comparisonObstacle, 1)], [obstacles(obstacle, 2), obstacles(comparisonObstacle, 2)], 'Color', 'r');
+                                        displayedLines = [displayedLines; (obstacles(obstacle, 1)+obstacles(comparisonObstacle, 1))/2, (obstacles(obstacle, 2)-obstacles(comparisonObstacle, 2))/2];
+                                        break;
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                drawnow;
+
+            end
+            
         end
         
-        function updateLineOfSight(micromouse)
+        function obstacles = getLineOfSight(micromouse)
+        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-10-11
+        % PURPOSE: Gets the list of obstacles the robot can see from its position
             
             % Get Line of Sight Obstacles
             possibleObstacleX = [];
@@ -333,34 +435,59 @@ classdef simulator < handle
                 end
             end
             
+            obstacles = [possibleObstacleX', possibleObstacleY'];
+            
+        end
+        
+        function updateLineOfSight(micromouse)
+        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-10-11
+        % PURPOSE: Updates line of sight of robot
+            
+            obstacles = micromouse.getLineOfSight();
+            micromouse.addObstacles(obstacles);
+            
+        end
+        
+        function addObstacles(micromouse, obstacles)
+        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-10-11
+        % PURPOSE: Check if provided obstacles already exist in the map and display them if not
+            
             figure(micromouse.display.figureHandle);
             
             obstacleAlreadyDisplayed = 0;
-            for obstacle = 1:length(possibleObstacleX)
-                if (micromouse.map.coordinates(possibleObstacleX(obstacle), possibleObstacleY(obstacle)) == micromouse.map.legend.obstacle)
+            for obstacle = 1:size(obstacles, 1)
+                if (micromouse.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == micromouse.map.legend.obstacle)
                     for previousObstacle = 1:size(micromouse.display.displayedObstacles, 1)
-                        if (possibleObstacleX(obstacle) == micromouse.display.displayedObstacles(previousObstacle, 1))
-                            if (possibleObstacleY(obstacle) == micromouse.display.displayedObstacles(previousObstacle, 2))
+                        if (obstacles(obstacle, 1) == micromouse.display.displayedObstacles(previousObstacle, 1))
+                            if (obstacles(obstacle, 2) == micromouse.display.displayedObstacles(previousObstacle, 2))
                                 obstacleAlreadyDisplayed = 1;
                                 break;
                             end
                         end
                     end
                     if (~obstacleAlreadyDisplayed)
-                        micromouse.display.displayedObstacles = [micromouse.display.displayedObstacles; possibleObstacleX(obstacle), possibleObstacleY(obstacle)];
-                        displayLine = displayObstacle(micromouse.map.coordinates, possibleObstacleX(obstacle), possibleObstacleY(obstacle), ...
-                                                      micromouse.robot.location, micromouse.robot.direction, micromouse.map.legend, micromouse.display.displayedLines);
-                        if (displayLine(1) ~= 0)
-                            micromouse.display.displayedLines = [micromouse.display.displayedLines; displayLine];
-                        end
+                        micromouse.display.displayedObstacles = [micromouse.display.displayedObstacles; obstacles(obstacle, :)];
+                        displayLine = displayObstacle(micromouse.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                      micromouse.robot.location, micromouse.robot.direction, micromouse.map.legend, micromouse.display.displayedLines, 1);
                     else
                         obstacleAlreadyDisplayed = 0;
+                        displayLine = displayObstacle(micromouse.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                      micromouse.robot.location, micromouse.robot.direction, micromouse.map.legend, micromouse.display.displayedLines, 0);
+                    end
+                    if (displayLine(1) ~= 0)
+                        micromouse.display.displayedLines = [micromouse.display.displayedLines; displayLine];
                     end
                 end
             end
             
-            function [displayLine] = displayObstacle(map, x, y, robotLocation, robotDirection, legend, displayedLines)
-            % EXAMPLE FUNCTION CALL: displayObstacle(micromouse.map.coordinates, x, y, micromouse.robot.location, micromouse.robot.direction, micromouse.map.legends)
+            drawnow;
+            
+            function [displayLine] = displayObstacle(map, x, y, robotLocation, robotDirection, legend, displayedLines, displayObstacleDot)
+            % EXAMPLE FUNCTION CALL: displayObstacle(micromouse.map.coordinates, x, y, micromouse.robot.location, micromouse.robot.direction, micromouse.map.legends, 1)
             % PROGRAMMER: Frederick Wachter
             % DATE CREATED: 2016-10-11
             % PURPOSE: Displays lines between neighboring obstacles using line of sight of the robot
@@ -580,7 +707,9 @@ classdef simulator < handle
                     end
                 end
                 
-                plot(x, y, 'or');
+                if (displayObstacleDot)
+                    plot(x, y, 'or');
+                end
                 
                 function alreadyDisplayed = lineAlreadyDisplayed(x, y, displayedLines)
                 % EXAMPLE FUNCTION CALL: alreadyDisplayed = lineAlreadyDisplayed(x, y, displayedLines)
@@ -603,6 +732,13 @@ classdef simulator < handle
             end
             
         end
+
+        function collisionDetection(micromouse)
+            
+            
+            
+        end
+        
         
         % Display Functions
         
@@ -684,6 +820,104 @@ classdef simulator < handle
         end
         
         
+        % Example Functions
+        
+        function exampleMovement(micromouse)
+            
+            delayTime = 0.05;
+            
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 2;
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 1;
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)+1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)+1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 2;
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 3;
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 2;
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 1;
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)+1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)+1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 2;
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 3;
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1), micromouse.robot.location(2)-1);
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+            micromouse.robot.direction = 2;
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            micromouse.moveRobot(micromouse.robot.location(1)+1, micromouse.robot.location(2));
+            micromouse.updateLineOfSight();
+            pause(delayTime);
+            
+        end
         
     end
     

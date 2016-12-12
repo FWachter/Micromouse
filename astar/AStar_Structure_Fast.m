@@ -61,11 +61,10 @@
 %   https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 %% ---- PROGRAM INFORMAITON ----
-% PROGRAMMER: Frederick Wachter
+% PROGRAMMER: Frederick Wachter - wachterfreddy@gmail.com
 % DATE CREATED: 2016-06-01
 % PURPOSE: AStar algorithm class
 % REFERENCE: http://ch.mathworks.com/matlabcentral/fileexchange/26248-a---a-star--search-for-path-planning-tutorial
-% CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
