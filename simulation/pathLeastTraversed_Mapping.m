@@ -8,7 +8,7 @@
 
 %% Get Simulator
 micromouse = simulator;
-load('maps/20x20/orthogonal/map2.mat')
+load('maps/20x20/orthogonal/map1.mat')
 micromouse.getMap(map);
 
 previousPosition = [0, 0];

@@ -751,6 +751,10 @@ classdef simulator < handle
         % Display Functions
         
         function initializeFigure(micromouse)
+        % EXAMPLE FUNCTION CALL: initializeFigure()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-10-12
+        % PURPOSE: Initialize figure for displaying maps
             
             micromouse.display.figureHandle = figure('Name', 'A* Algorithm', 'NumberTitle', 'off'); % initialize figure
             figurePosition = get(micromouse.display.figureHandle, 'Position');
