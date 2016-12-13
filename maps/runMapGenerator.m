@@ -18,6 +18,5 @@
 % Please refer to the Wiki for instructions on how to use this script
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
-
 generator = mapGenerator;
 generator.generateMap;

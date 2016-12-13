@@ -20,10 +20,6 @@ classdef simulator < handle
         sim
     end
 
-% pull map, define environment
-% move robot
-
-
 %% CONSTRUCTOR METHOD
     methods
         
@@ -65,7 +61,6 @@ classdef simulator < handle
         
     end
     
-    
 %% PUBLIC METHODS
 
     methods
@@ -97,6 +92,7 @@ classdef simulator < handle
             % Get Initial Parameters
             micromouse.getRobotOrientation();
             micromouse.updateLineOfSight();
+            micromouse.checkRobotBoundaries();
             pause(0.5);
             drawnow;
 
@@ -120,7 +116,6 @@ classdef simulator < handle
             % Update Robot Sensors
             micromouse.updateLineOfSight();
             micromouse.checkRobotBoundaries();
-%             micromouse.collisionDetection();
             drawnow;
             
             pause(micromouse.sim.speed);
@@ -137,8 +132,7 @@ classdef simulator < handle
             
         end
         
-    end
-    
+    end 
 
 %% PRIVATE METHODS
 
@@ -223,20 +217,6 @@ classdef simulator < handle
             
             if ~(directionSet)
                 error('Fatal error in getRobotOrientation function');
-            end
-            
-            % Update Availble Direction for Robot Movement
-            if ((micromouse.robot.location(2) ~= micromouse.map.maxY) && (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)+1) == micromouse.map.legend.obstacle))
-                micromouse.robot.openDirections(1) = 0;
-            end
-            if ((micromouse.robot.location(1) ~= micromouse.map.maxX) && (micromouse.map.coordinates(micromouse.robot.location(1)+1, micromouse.robot.location(2)) == micromouse.map.legend.obstacle))
-                micromouse.robot.openDirections(2) = 0;
-            end
-            if ((micromouse.robot.location(2) ~= 1) && (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)-1) == micromouse.map.legend.obstacle))
-                micromouse.robot.openDirections(3) = 0;
-            end
-            if ((micromouse.robot.location(1) ~= 1) && (micromouse.map.coordinates(micromouse.robot.location(1)-1, micromouse.robot.location(2)) == micromouse.map.legend.obstacle))
-                micromouse.robot.openDirections(4) = 0;
             end
             
             % Get Potential Obstacle Locations Based on Start Location and Direction
@@ -766,12 +746,6 @@ classdef simulator < handle
             end
             
         end
-
-%         function collisionDetection(micromouse)
-%             
-%             
-%             
-%         end
         
         
         % Display Functions
