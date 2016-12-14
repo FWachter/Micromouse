@@ -23,17 +23,14 @@ public:
 	// Constructor to initialize x,y start
 	Map(const double x, const double y);
 
-	// Creates a node as a shared_ptr
-	shared_ptr<Node> createNode(const double x0, const double y0);
-
-	// Adds a node to the map
+	// Adds a node, specified by (x, y) point to the map
 	void addNode(const double x, const double y, const bool goal=0);
 	
 	// Backtrack by popping off the stack
 	void backTrack(void);
 
 	// Returns the current Node
-	shared_ptr<Node> getCurrentNode() const;
+	Node getCurrentNode() const;
 
 	// Finds the best path from start node to the goal node
 	stack<Node> bestFirstSearch() const;

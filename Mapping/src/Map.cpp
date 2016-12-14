@@ -37,13 +37,8 @@ void Map::backTrack(void) {
 }
 
 // Returns the current Node
-shared_ptr<Node> Map::getCurrentNode() const {
-	return _vStack.top();
-}
-
-// Creates a node as a shared_ptr
-shared_ptr<Node> Map::createNode(const double x0, const double y0) {
-	return make_shared<Node>(x0, y0);
+Node Map::getCurrentNode() const {
+	return *(_vStack.top());
 }
 
 // Add a node to the map. Checks for duplicate points
