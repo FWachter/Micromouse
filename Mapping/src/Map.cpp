@@ -12,6 +12,8 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <algorithm>
+#include <cmath>
 using namespace std;
 
 // Constructor
@@ -44,15 +46,47 @@ shared_ptr<Node> Map::createNode(const double x0, const double y0) {
 	return make_shared<Node>(x0, y0);
 }
 
-// Add a node to the map, the parent of this node is always the top of the
-// stack
-void Map::addNode(const shared_ptr<Node>& n, const bool goal) {
-	if(_verticesTracker.count(n) == 0) {
-		_vertices.push_back(n);
-		_verticesTracker.insert(pair<shared_ptr<Node>, bool>(n, true));
+// Add a node to the map. Checks for duplicate points
+#define MAP_RES 0.1
+void Map::addNode(const double x, const double y, const bool goal) {
+	// vector didn't exist at this hash value
+	if(_vt.count(_hash(x,y)) == 0) {
+		_vt.insert(pair<unsigned int, vector<shared_ptr<Node> > >(
+			_hash(x,y), vector<shared_ptr<Node> >()));
+		shared_ptr<Node> newNode = make_shared<Node>(x,y);
+		_vt.at(_hash(x,y)).push_back(newNode);
+		_vertices.push_back(newNode);
+		addNode(newNode, goal);
 	}
-	_edges.addEdge(_vStack.top(), n);
-	_vStack.push(n);
+	else {
+		auto& vec = _vt.at(_hash(x,y));
+		auto cmp = [x,y](shared_ptr<Node>& n)->bool {
+			return (abs(x - n->x) < MAP_RES and abs(y - n->y) < MAP_RES);
+		};
+		// try to find the Node in the vector
+		auto it = find_if(vec.begin(), vec.end(), cmp);
+		if(it == vec.end()) {
+			// consider the point a new node
+			shared_ptr<Node> newNode = make_shared<Node>(x,y);
+			vec.push_back(newNode);
+			_vertices.push_back(newNode);
+			addNode(newNode, goal);
+		}
+		else { // Node already existed
+			addNode(*it, goal);
+		}
+	}
+}
+
+// Helper implementation. Parent of Node is always at top of stack
+void Map::addNode(const shared_ptr<Node>& n, const bool goal) {
+	if(!_vStack.empty()) {
+		_edges.addEdge(_vStack.top(), n);
+		_vStack.push(n);
+	}
+	else {
+		_vStack.push(n);
+	}
 	if(goal) {
 		_goalNode = n;
 	}
