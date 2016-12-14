@@ -7,10 +7,10 @@ OBJS=$(subst .cpp,.o,$(SRCS))
 all: out
 
 out: $(OBJS)
-	-@$(CXX) $(CPPFLAGS) $(OBJS) -o out
+	@$(CXX) $(CPPFLAGS) $(OBJS) -o out
 
 %.o: %.cpp
-	-@$(CXX) -c $(CPPFLAGS) $<
+	@$(CXX) -c $(CPPFLAGS) $<
 
 clean:
 	-@rm -rf $(OBJS) out > /dev/null 2>&1
