@@ -17,45 +17,42 @@ classdef simulator < handle
         map
         sensor
         display
-        sim
     end
 
 %% CONSTRUCTOR METHOD
     methods
         
-        function micromouse = simulator(varargin)
-        % EXAMPLE FUNCTION CALL: micromouse = simulator(varargin)
+        function sim = simulator(varargin)
+        % EXAMPLE FUNCTION CALL: sim = simulator(varargin)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-11
         % PURPOSE: Construct the structure
         % TYPE: Constructor Method
             
             % Map Properties
-            micromouse.map.coordinates = [];
-            micromouse.map.maxX        = 0;
-            micromouse.map.maxY        = 0;
+            sim.map.coordinates = [];
+            sim.map.maxX        = 0;
+            sim.map.maxY        = 0;
             
-            micromouse.map.targetLocation   = [0,0];
-            micromouse.map.startLocation    = [0,0];
+            sim.map.targetLocation   = [0,0];
+            sim.map.startLocation    = [0,0];
             
             % Figure Properties
-            micromouse.display.obstacleCount      = 0;
-            micromouse.display.figureHandle       = -1;
-            micromouse.display.handles.robot      = -1;
-            micromouse.display.displayedObstacles = [];
-            micromouse.display.displayedLines     = [];
+            sim.display.obstacleCount      = 0;
+            sim.display.figureHandle       = -1;
+            sim.display.handles.robot      = -1;
+            sim.display.displayedObstacles = [];
+            sim.display.displayedLines     = [];
+            sim.display.delaySpeed         = 0.01;
             
             % Robot Properties
-            micromouse.robot.location       = [0,0];
-            micromouse.robot.direction      = 1; % N: 1, E: 2, S: 3, W: 4
-            micromouse.robot.openDirections = ones(1,4);
-            micromouse.robot.map            = [];
+            sim.robot.location       = [0,0];
+            sim.robot.direction      = 1; % N: 1, E: 2, S: 3, W: 4
+            sim.robot.openDirections = ones(1,4);
+            sim.robot.map            = [];
             
             % Sensor Properties
-            micromouse.sensor.lineOfSight = 2;
-            
-            % Simulation Properties
-            micromouse.sim.speed = 0.01;
+            sim.sensor.lineOfSight = 2;
             
         end
         
@@ -65,74 +62,81 @@ classdef simulator < handle
 
     methods
         
-        function getMap(micromouse, map)
-        % EXAMPLE FUNCTION CALL: getMap(micromouse, map)
+        function getMap(sim, map)
+        % EXAMPLE FUNCTION CALL: sim.getMap(map)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-11
-        % PURPOSE: Take user varables and run master script for AStar
-        % INPUTS:      map - 2D array containing obstacles, target, and start location
+        % PURPOSE: Load map into simulation
             
             % Get Initial Map Properties
-            micromouse.map.coordinates = map.data;
-            micromouse.map.legend      = map.legend;
-            micromouse.map.maxX        = size(map.data, 1);
-            micromouse.map.maxY        = size(map.data, 2);
+            sim.map.coordinates = map.data;
+            sim.map.legend      = map.legend;
+            sim.map.maxX        = size(map.data, 1);
+            sim.map.maxY        = size(map.data, 2);
             
-            micromouse.robot.map = ones(size(map.data))*map.legend.freeSpace;
-            micromouse.robot.legend      = map.legend;
+            sim.robot.map    = ones(size(map.data))*map.legend.freeSpace;
+            sim.robot.legend = map.legend;
             
             % Reset Figure Properties
-            micromouse.display.figureHandle     = -1;
+            sim.display.figureHandle     = -1;
             
             % Display Figure
-            micromouse.initializeFigure();
-            micromouse.displayFullMap();
-            micromouse.displayMap();
+            sim.initializeFigure();
+            sim.displayFullMap();
+            sim.displayMap();
             
             % Get Initial Parameters
-            micromouse.getRobotOrientation();
-            micromouse.updateLineOfSight();
-            micromouse.checkRobotBoundaries();
+            sim.getRobotOrientation();
+            sim.updateLineOfSight();
+            sim.checkRobotBoundaries();
             pause(0.5);
             drawnow;
 
         end
         
-        function moveRobot(micromouse, direction)
+        function moveRobot(sim, direction, openDirections)
+        % EXAMPLE FUNCTION CALL: sim.moveRobot(direction)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-11
+        % PURPOSE: Move robot one unit in a specified direction in simulation
             
-            figure(micromouse.display.figureHandle); subplot(121); % remove if faster speed needed
+            figure(sim.display.figureHandle); subplot(121); % remove if faster speed needed
             
             % Check If Movement Allowed
-            if (micromouse.robot.openDirections(direction) == 0)
+            if (sim.robot.openDirections(direction) == 0)
                 error('Cannot move in desired direction. Not performing movement');
             end
             
             % Update Robot Direction
-            micromouse.robot.direction = direction;
+            sim.robot.direction = direction;
             
             % Update Robot Location
-            micromouse.updateRobotLocation();
+            sim.updateRobotLocation();
             
             % Update Robot Sensors
-            micromouse.updateLineOfSight();
-            micromouse.checkRobotBoundaries();
+            sim.updateLineOfSight();
+            sim.checkRobotBoundaries();
             drawnow;
             
-            pause(micromouse.sim.speed);
+            pause(sim.display.delaySpeed);
             
         end
         
-        function alive = isFigureAlive(micromouse)
+        function alive = isFigureAlive(sim)
+        % EXAMPLE FUNCTION CALL: sim.isFigureAlive()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-11
+        % PURPOSE: Check if simulation figure is still alive
             
             alive = 0;
             pause(0.0001);
-            if (ishandle(micromouse.display.figureHandle))
+            if (ishandle(sim.display.figureHandle))
                 alive = 1;
             end
             
         end
         
-    end 
+    end
 
 %% PRIVATE METHODS
 
@@ -140,78 +144,78 @@ classdef simulator < handle
         
         % Robot Function
         
-        function updateRobotLocation(micromouse)
-        % EXAMPLE FUNCTION CALL: micromouse.updateRobotLocation()
+        function updateRobotLocation(sim)
+        % EXAMPLE FUNCTION CALL: sim.updateRobotLocation()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-12
-        % PURPOSE: Update position of micromouse based on direction
+        % PURPOSE: Update position of sim based on direction
             
             % Update Location
-            if (micromouse.robot.direction == 1)
-                micromouse.robot.location(2) = micromouse.robot.location(2) + 1;
-            elseif (micromouse.robot.direction == 2)
-                micromouse.robot.location(1) = micromouse.robot.location(1) + 1;
-            elseif (micromouse.robot.direction == 3)
-                micromouse.robot.location(2) = micromouse.robot.location(2) - 1;
+            if (sim.robot.direction == 1)
+                sim.robot.location(2) = sim.robot.location(2) + 1;
+            elseif (sim.robot.direction == 2)
+                sim.robot.location(1) = sim.robot.location(1) + 1;
+            elseif (sim.robot.direction == 3)
+                sim.robot.location(2) = sim.robot.location(2) - 1;
             else
-                micromouse.robot.location(1) = micromouse.robot.location(1) - 1;
+                sim.robot.location(1) = sim.robot.location(1) - 1;
             end
             
             % Update Display Location
-            set(micromouse.display.handles.robot, 'XData', micromouse.robot.location(1), 'YData', micromouse.robot.location(2));
+            set(sim.display.handles.robot, 'XData', sim.robot.location(1), 'YData', sim.robot.location(2));
             
         end
         
-        function checkRobotBoundaries(micromouse)
-        % EXAMPLE FUNCTION CALL: micromouse.checkMapBoundaries()
+        function checkRobotBoundaries(sim)
+        % EXAMPLE FUNCTION CALL: sim.checkMapBoundaries()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-12
         % PURPOSE: Check if robot is at map boundaries
         
-            micromouse.robot.openDirections = ones(1,4);
+            sim.robot.openDirections = ones(1,4);
         
-            if ((micromouse.robot.location(2) == micromouse.map.maxY) || ... 
-               ((micromouse.robot.location(2) ~= micromouse.map.maxY) && ... 
-                (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)+1) == micromouse.map.legend.obstacle)))
-                micromouse.robot.openDirections(1) = 0;
+            if ((sim.robot.location(2) == sim.map.maxY) || ... 
+               ((sim.robot.location(2) ~= sim.map.maxY) && ... 
+                (sim.map.coordinates(sim.robot.location(1), sim.robot.location(2)+1) == sim.map.legend.obstacle)))
+                sim.robot.openDirections(1) = 0;
             end
-            if ((micromouse.robot.location(1) == micromouse.map.maxX) || ... 
-               ((micromouse.robot.location(1) ~= micromouse.map.maxX) && ... 
-                (micromouse.map.coordinates(micromouse.robot.location(1)+1, micromouse.robot.location(2)) == micromouse.map.legend.obstacle)))
-                micromouse.robot.openDirections(2) = 0;
+            if ((sim.robot.location(1) == sim.map.maxX) || ... 
+               ((sim.robot.location(1) ~= sim.map.maxX) && ... 
+                (sim.map.coordinates(sim.robot.location(1)+1, sim.robot.location(2)) == sim.map.legend.obstacle)))
+                sim.robot.openDirections(2) = 0;
             end
-            if ((micromouse.robot.location(2) == 1) || ... 
-               ((micromouse.robot.location(2) ~= 1) && ... 
-                (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)-1) == micromouse.map.legend.obstacle)))
-                micromouse.robot.openDirections(3) = 0;
+            if ((sim.robot.location(2) == 1) || ... 
+               ((sim.robot.location(2) ~= 1) && ... 
+                (sim.map.coordinates(sim.robot.location(1), sim.robot.location(2)-1) == sim.map.legend.obstacle)))
+                sim.robot.openDirections(3) = 0;
             end
-            if ((micromouse.robot.location(1) == 1) || ... 
-               ((micromouse.robot.location(1) ~= 1) && ... 
-                (micromouse.map.coordinates(micromouse.robot.location(1)-1, micromouse.robot.location(2)) == micromouse.map.legend.obstacle)))
-                micromouse.robot.openDirections(4) = 0;
+            if ((sim.robot.location(1) == 1) || ... 
+               ((sim.robot.location(1) ~= 1) && ... 
+                (sim.map.coordinates(sim.robot.location(1)-1, sim.robot.location(2)) == sim.map.legend.obstacle)))
+                sim.robot.openDirections(4) = 0;
             end
         
         end
         
-        function getRobotOrientation(micromouse)
-        % EXAMPLE FUNCTION CALL: micromouse.getRobotOrientation()
+        function getRobotOrientation(sim)
+        % EXAMPLE FUNCTION CALL: sim.getRobotOrientation()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Get initial orientation of the robot
         
             % Initialize Robot Direction
             directionSet = 0;
-            if ((micromouse.robot.location(2) ~= micromouse.map.maxY) && (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)+1) == micromouse.map.legend.freeSpace))
-                micromouse.robot.direction = 1;
+            if ((sim.robot.location(2) ~= sim.map.maxY) && (sim.map.coordinates(sim.robot.location(1), sim.robot.location(2)+1) == sim.map.legend.freeSpace))
+                sim.robot.direction = 1;
                 directionSet = 1;
-            elseif ((micromouse.robot.location(1) ~= micromouse.map.maxX) && (micromouse.map.coordinates(micromouse.robot.location(1)+1, micromouse.robot.location(2)) == micromouse.map.legend.freeSpace))
-                micromouse.robot.direction = 2;
+            elseif ((sim.robot.location(1) ~= sim.map.maxX) && (sim.map.coordinates(sim.robot.location(1)+1, sim.robot.location(2)) == sim.map.legend.freeSpace))
+                sim.robot.direction = 2;
                 directionSet = 1;
-            elseif ((micromouse.robot.location(2) ~= 1) && (micromouse.map.coordinates(micromouse.robot.location(1), micromouse.robot.location(2)-1) == micromouse.map.legend.freeSpace))
-                micromouse.robot.direction = 3;
+            elseif ((sim.robot.location(2) ~= 1) && (sim.map.coordinates(sim.robot.location(1), sim.robot.location(2)-1) == sim.map.legend.freeSpace))
+                sim.robot.direction = 3;
                 directionSet = 1;
-            elseif (micromouse.robot.location(1) ~= 1)
-                micromouse.robot.direction = 4;
+            elseif (sim.robot.location(1) ~= 1)
+                sim.robot.direction = 4;
                 directionSet = 1;
             end
             
@@ -220,22 +224,22 @@ classdef simulator < handle
             end
             
             % Get Potential Obstacle Locations Based on Start Location and Direction
-            obstacles = getAssumedBoundaries(micromouse.map, micromouse.robot.location(1), micromouse.robot.location(2), micromouse.robot.direction);
+            obstacles = getAssumedBoundaries(sim.map, sim.robot.location(1), sim.robot.location(2), sim.robot.direction);
 
             % Display Obstacles if Potential Obstacles are Validated to be Obstacles
             for obstacle = 1:size(obstacles, 1)
-                if (micromouse.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == micromouse.map.legend.obstacle)
+                if (sim.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == sim.map.legend.obstacle)
                     
                     plot(obstacles(obstacle, 1), obstacles(obstacle, 2), 'or');
-                    micromouse.display.displayedObstacles = [micromouse.display.displayedObstacles; obstacles(obstacle, :)];
-                    micromouse.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = micromouse.robot.legend.obstacle;
+                    sim.display.displayedObstacles = [sim.display.displayedObstacles; obstacles(obstacle, :)];
+                    sim.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = sim.robot.legend.obstacle;
                     
                     for comparisonObstacle = 1:size(obstacles, 1)
-                        if (micromouse.map.coordinates(obstacles(comparisonObstacle, 1), obstacles(comparisonObstacle, 2)) == micromouse.map.legend.obstacle)
+                        if (sim.map.coordinates(obstacles(comparisonObstacle, 1), obstacles(comparisonObstacle, 2)) == sim.map.legend.obstacle)
                             if (obstacle ~= comparisonObstacle)
                                 if (sqrt((obstacles(obstacle, 1) - obstacles(comparisonObstacle, 1))^2 + (obstacles(obstacle, 2) - obstacles(comparisonObstacle, 2))^2) == 1)
                                     line([obstacles(obstacle, 1), obstacles(comparisonObstacle, 1)], [obstacles(obstacle, 2), obstacles(comparisonObstacle, 2)], 'Color', 'r');
-                                    micromouse.display.displayedLines = [micromouse.display.displayedLines; (obstacles(obstacle, 1)+obstacles(comparisonObstacle, 1))/2, (obstacles(obstacle, 2)-obstacles(comparisonObstacle, 2))/2];
+                                    sim.display.displayedLines = [sim.display.displayedLines; (obstacles(obstacle, 1)+obstacles(comparisonObstacle, 1))/2, (obstacles(obstacle, 2)-obstacles(comparisonObstacle, 2))/2];
                                     break;
                                 end
                             end
@@ -246,7 +250,7 @@ classdef simulator < handle
             drawnow;
             
             function obstacles = getAssumedBoundaries(map, robotX, robotY, robotDirection)
-            % EXAMPLE FUNCTION CALL: micromouse.getRobotOrientation()
+            % EXAMPLE FUNCTION CALL: sim.getRobotOrientation()
             % PROGRAMMER: Frederick Wachter
             % DATE CREATED: 2016-10-11
             % PURPOSE: Get initial borders of robot at robot placement
@@ -366,7 +370,7 @@ classdef simulator < handle
            
         end
         
-        function obstacles = getLineOfSight(micromouse)
+        function obstacles = getLineOfSight(sim)
         % EXAMPLE FUNCTION CALL: updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
@@ -375,64 +379,64 @@ classdef simulator < handle
             % Get Line of Sight Obstacles
             possibleObstacleX = [];
             possibleObstacleY = [];
-            robotX = micromouse.robot.location(1);
-            robotY = micromouse.robot.location(2);
+            robotX = sim.robot.location(1);
+            robotY = sim.robot.location(2);
             
-            if (micromouse.robot.direction == 1)
-                if ((robotX > 1) && (robotX < micromouse.map.maxX))
-                    if ((robotY < micromouse.map.maxY - 1) && (micromouse.map.coordinates(robotX, robotY+1) ~= micromouse.map.legend.obstacle))
+            if (sim.robot.direction == 1)
+                if ((robotX > 1) && (robotX < sim.map.maxX))
+                    if ((robotY < sim.map.maxY - 1) && (sim.map.coordinates(robotX, robotY+1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX, robotX, robotX+1];
                         possibleObstacleY = [robotY+1, robotY+1, robotY+2, robotY+1];
-                    elseif (robotY < micromouse.map.maxY)
+                    elseif (robotY < sim.map.maxY)
                         possibleObstacleX = [robotX-1, robotX, robotX+1];
                         possibleObstacleY = [robotY+1, robotY+1, robotY+1];
                     end
                 elseif (robotX == 1)
-                    if ((robotY < micromouse.map.maxY - 1) && (micromouse.map.coordinates(robotX, robotY+1) ~= micromouse.map.legend.obstacle))
+                    if ((robotY < sim.map.maxY - 1) && (sim.map.coordinates(robotX, robotY+1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX, robotX, robotX+1];
                         possibleObstacleY = [robotY+1, robotY+2,robotY+1];
-                    elseif (robotY < micromouse.map.maxY)
+                    elseif (robotY < sim.map.maxY)
                         possibleObstacleX = [robotX, robotX+1];
                         possibleObstacleY = [robotY+1, robotY+1];
                     end
-                elseif (robotX == micromouse.map.maxX)
-                    if ((robotY < micromouse.map.maxY - 1) && (micromouse.map.coordinates(robotX, robotY+1) ~= micromouse.map.legend.obstacle))
+                elseif (robotX == sim.map.maxX)
+                    if ((robotY < sim.map.maxY - 1) && (sim.map.coordinates(robotX, robotY+1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX, robotX];
                         possibleObstacleY = [robotY+1, robotY+1, robotY+2];
-                    elseif (robotY < micromouse.map.maxY)
+                    elseif (robotY < sim.map.maxY)
                         possibleObstacleX = [robotX-1, robotX];
                         possibleObstacleY = [robotY+1, robotY+1];
                     end
                 end
-            elseif (micromouse.robot.direction == 2)
-                if ((robotY > 1) && (robotY < micromouse.map.maxY))
-                    if ((robotX < micromouse.map.maxX - 1) && (micromouse.map.coordinates(robotX+1, robotY) ~= micromouse.map.legend.obstacle))
+            elseif (sim.robot.direction == 2)
+                if ((robotY > 1) && (robotY < sim.map.maxY))
+                    if ((robotX < sim.map.maxX - 1) && (sim.map.coordinates(robotX+1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX+1, robotX+1, robotX+2, robotX+1];
                         possibleObstacleY = [robotY+1, robotY, robotY, robotY-1];
-                    elseif (robotX < micromouse.map.maxX)
+                    elseif (robotX < sim.map.maxX)
                         possibleObstacleX = [robotX+1, robotX+1, robotX+1];
                         possibleObstacleY = [robotY+1, robotY, robotY-1];
                     end
                 elseif (robotY == 1)
-                    if ((robotX < micromouse.map.maxX - 1) && (micromouse.map.coordinates(robotX+1, robotY) ~= micromouse.map.legend.obstacle))
+                    if ((robotX < sim.map.maxX - 1) && (sim.map.coordinates(robotX+1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX+1, robotX+1, robotX+2];
                         possibleObstacleY = [robotY+1, robotY, robotY];
-                    elseif (robotX < micromouse.map.maxX)
+                    elseif (robotX < sim.map.maxX)
                         possibleObstacleX = [robotX+1, robotX+1];
                         possibleObstacleY = [robotY+1, robotY];
                     end
-                elseif (robotY == micromouse.map.maxY)
-                    if ((robotX < micromouse.map.maxX - 1) && (micromouse.map.coordinates(robotX+1, robotY) ~= micromouse.map.legend.obstacle))
+                elseif (robotY == sim.map.maxY)
+                    if ((robotX < sim.map.maxX - 1) && (sim.map.coordinates(robotX+1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX+1, robotX+2, robotX+1];
                         possibleObstacleY = [robotY, robotY, robotY-1];
-                    elseif (robotX < micromouse.map.maxX)
+                    elseif (robotX < sim.map.maxX)
                         possibleObstacleX = [robotX+1, robotX+1];
                         possibleObstacleY = [robotY, robotY-1];
                     end
                 end
-            elseif (micromouse.robot.direction == 3)
-                if ((robotX > 1) && (robotX < micromouse.map.maxX))
-                    if ((robotY > 2) && (micromouse.map.coordinates(robotX, robotY-1) ~= micromouse.map.legend.obstacle))
+            elseif (sim.robot.direction == 3)
+                if ((robotX > 1) && (robotX < sim.map.maxX))
+                    if ((robotY > 2) && (sim.map.coordinates(robotX, robotY-1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX, robotX, robotX+1];
                         possibleObstacleY = [robotY-1, robotY-1, robotY-2, robotY-1];
                     elseif (robotY > 1)
@@ -440,15 +444,15 @@ classdef simulator < handle
                         possibleObstacleY = [robotY-1, robotY-1, robotY-1];
                     end
                 elseif (robotX == 1)
-                    if ((robotY > 2) && (micromouse.map.coordinates(robotX, robotY-1) ~= micromouse.map.legend.obstacle))
+                    if ((robotY > 2) && (sim.map.coordinates(robotX, robotY-1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX, robotX, robotX+1];
                         possibleObstacleY = [robotY-1, robotY-2, robotY-1];
                     elseif (robotY > 1)
                         possibleObstacleX = [robotX, robotX+1];
                         possibleObstacleY = [robotY-1, robotY-1];
                     end
-                elseif (robotX == micromouse.map.maxX)
-                    if ((robotY > 2) && (micromouse.map.coordinates(robotX, robotY-1) ~= micromouse.map.legend.obstacle))
+                elseif (robotX == sim.map.maxX)
+                    if ((robotY > 2) && (sim.map.coordinates(robotX, robotY-1) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX, robotX];
                         possibleObstacleY = [robotY-1, robotY-1, robotY-2];
                     elseif (robotY > 1)
@@ -457,27 +461,27 @@ classdef simulator < handle
                     end
                 end
             else
-                if ((robotY > 1) && (robotY < micromouse.map.maxY))
-                    if ((robotX > 2) && (micromouse.map.coordinates(robotX-1, robotY) ~= micromouse.map.legend.obstacle))
+                if ((robotY > 1) && (robotY < sim.map.maxY))
+                    if ((robotX > 2) && (sim.map.coordinates(robotX-1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX-1, robotX-2, robotX-1];
                         possibleObstacleY = [robotY+1, robotY, robotY, robotY-1];
-                    elseif ((robotX < micromouse.map.maxX) && (robotX > 1))
+                    elseif ((robotX < sim.map.maxX) && (robotX > 1))
                         possibleObstacleX = [robotX-1, robotX-1, robotX-1];
                         possibleObstacleY = [robotY+1, robotY, robotY-1];
                     end
                 elseif (robotY == 1)
-                    if ((robotX > 2) && (micromouse.map.coordinates(robotX-1, robotY) ~= micromouse.map.legend.obstacle))
+                    if ((robotX > 2) && (sim.map.coordinates(robotX-1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX-1, robotX-2];
                         possibleObstacleY = [robotY+1, robotY, robotY];
-                    elseif ((robotX < micromouse.map.maxX) && (robotX > 1))
+                    elseif ((robotX < sim.map.maxX) && (robotX > 1))
                         possibleObstacleX = [robotX-1, robotX-1];
                         possibleObstacleY = [robotY+1, robotY];
                     end
-                elseif (robotY == micromouse.map.maxY)
-                    if ((robotX > 2) && (micromouse.map.coordinates(robotX-1, robotY) ~= micromouse.map.legend.obstacle))
+                elseif (robotY == sim.map.maxY)
+                    if ((robotX > 2) && (sim.map.coordinates(robotX-1, robotY) ~= sim.map.legend.obstacle))
                         possibleObstacleX = [robotX-1, robotX-2, robotX-1];
                         possibleObstacleY = [robotY, robotY, robotY-1];
-                    elseif ((robotX < micromouse.map.maxX) && (robotX > 1))
+                    elseif ((robotX < sim.map.maxX) && (robotX > 1))
                         possibleObstacleX = [robotX-1, robotX-1];
                         possibleObstacleY = [robotY, robotY-1];
                     end
@@ -488,20 +492,20 @@ classdef simulator < handle
             
         end
         
-        function updateLineOfSight(micromouse)
+        function updateLineOfSight(sim)
         % EXAMPLE FUNCTION CALL: updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Updates line of sight of robot
             
-            obstacles = micromouse.getLineOfSight();
+            obstacles = sim.getLineOfSight();
             if (~isempty(obstacles))
-                micromouse.addObstacles(obstacles);
+                sim.addObstacles(obstacles);
             end
             
         end
         
-        function addObstacles(micromouse, obstacles)
+        function addObstacles(sim, obstacles)
         % EXAMPLE FUNCTION CALL: updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
@@ -509,10 +513,10 @@ classdef simulator < handle
             
             obstacleAlreadyDisplayed = 0;
             for obstacle = 1:size(obstacles, 1)
-                if (micromouse.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == micromouse.map.legend.obstacle)
-                    for previousObstacle = 1:size(micromouse.display.displayedObstacles, 1)
-                        if (obstacles(obstacle, 1) == micromouse.display.displayedObstacles(previousObstacle, 1))
-                            if (obstacles(obstacle, 2) == micromouse.display.displayedObstacles(previousObstacle, 2))
+                if (sim.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == sim.map.legend.obstacle)
+                    for previousObstacle = 1:size(sim.display.displayedObstacles, 1)
+                        if (obstacles(obstacle, 1) == sim.display.displayedObstacles(previousObstacle, 1))
+                            if (obstacles(obstacle, 2) == sim.display.displayedObstacles(previousObstacle, 2))
                                 obstacleAlreadyDisplayed = 1;
                                 break;
                             end
@@ -520,24 +524,24 @@ classdef simulator < handle
                     end
                     
                     if (~obstacleAlreadyDisplayed)
-                        micromouse.display.displayedObstacles = [micromouse.display.displayedObstacles; obstacles(obstacle, :)];
-                        displayLine = displayObstacle(micromouse.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
-                                                      micromouse.robot.location, micromouse.robot.direction, micromouse.map.legend, micromouse.display.displayedLines, true);
-                        micromouse.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = micromouse.robot.legend.obstacle;
+                        sim.display.displayedObstacles = [sim.display.displayedObstacles; obstacles(obstacle, :)];
+                        displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                      sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, true);
+                        sim.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = sim.robot.legend.obstacle;
                     else
                         obstacleAlreadyDisplayed = 0;
-                        displayLine = displayObstacle(micromouse.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
-                                                      micromouse.robot.location, micromouse.robot.direction, micromouse.map.legend, micromouse.display.displayedLines, false);
+                        displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                      sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, false);
                     end
                     if (displayLine(1) ~= 0)
-                        micromouse.display.displayedLines = [micromouse.display.displayedLines; displayLine];
+                        sim.display.displayedLines = [sim.display.displayedLines; displayLine];
                     end
                 end
             end
             drawnow;
             
             function [displayLine] = displayObstacle(map, x, y, robotLocation, robotDirection, legend, displayedLines, displayObstacleDot)
-            % EXAMPLE FUNCTION CALL: displayObstacle(micromouse.map.coordinates, x, y, micromouse.robot.location, micromouse.robot.direction, micromouse.map.legends, 1)
+            % EXAMPLE FUNCTION CALL: displayObstacle(sim.map.coordinates, x, y, sim.robot.location, sim.robot.direction, sim.map.legends, 1)
             % PROGRAMMER: Frederick Wachter
             % DATE CREATED: 2016-10-11
             % PURPOSE: Displays lines between neighboring obstacles using line of sight of the robot
@@ -750,42 +754,42 @@ classdef simulator < handle
         
         % Display Functions
         
-        function initializeFigure(micromouse)
+        function initializeFigure(sim)
         % EXAMPLE FUNCTION CALL: initializeFigure()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-12
         % PURPOSE: Initialize figure for displaying maps
             
-            micromouse.display.figureHandle = figure('Name', 'A* Algorithm', 'NumberTitle', 'off'); % initialize figure
-            figurePosition = get(micromouse.display.figureHandle, 'Position');
-            set(micromouse.display.figureHandle, 'Position', [figurePosition(1:2), figurePosition(3)*1.5, figurePosition(4)]);
+            sim.display.figureHandle = figure('Name', 'A* Algorithm', 'NumberTitle', 'off'); % initialize figure
+            figurePosition = get(sim.display.figureHandle, 'Position');
+            set(sim.display.figureHandle, 'Position', [figurePosition(1:2), figurePosition(3)*1.5, figurePosition(4)]);
             
             subplot(121);
-            axis([0.5, micromouse.map.maxX+0.5, 0.5, micromouse.map.maxY+0.5]); % initialize axis spacing
+            axis([0.5, sim.map.maxX+0.5, 0.5, sim.map.maxY+0.5]); % initialize axis spacing
             axis square; grid on; hold on; % set axis properties
             subplot(122);
-            axis([0.5, micromouse.map.maxX+0.5, 0.5, micromouse.map.maxY+0.5]); % initialize axis spacing
+            axis([0.5, sim.map.maxX+0.5, 0.5, sim.map.maxY+0.5]); % initialize axis spacing
             axis square; grid on; hold on; % set axis properties
             
         end
         
-        function displayMap(micromouse)
-        % EXAMPLE FUNCTION CALL: micromouse.displayMap()
+        function displayMap(sim)
+        % EXAMPLE FUNCTION CALL: sim.displayMap()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
-        % PURPOSE: Display the map with only objects that the micromouse can see
+        % PURPOSE: Display the map with only objects that the sim can see
 
-            figure(micromouse.display.figureHandle); subplot(121);
+            figure(sim.display.figureHandle); subplot(121);
             title('Map from Robot');
             
             % Display obstacles, robot, and target location
-            for x = 1:micromouse.map.maxX % for all map x locations
-                for y = 1:micromouse.map.maxY % for all map y locations
-                    if (micromouse.map.coordinates(x, y) == micromouse.map.legend.start) % if the current locaiton is the robot
-                        micromouse.robot.location = [x, y];
-                        micromouse.display.handles.robot = plot(x, y, 'bo'); % show the robot
-                        micromouse.robot.map(x, y) = micromouse.robot.legend.start;
-                        micromouse.robot.location          = [x, y];
+            for x = 1:sim.map.maxX % for all map x locations
+                for y = 1:sim.map.maxY % for all map y locations
+                    if (sim.map.coordinates(x, y) == sim.map.legend.start) % if the current locaiton is the robot
+                        sim.robot.location = [x, y];
+                        sim.display.handles.robot = plot(x, y, 'bo'); % show the robot
+                        sim.robot.map(x, y) = sim.robot.legend.start;
+                        sim.robot.location          = [x, y];
                     end
                 end
             end
@@ -793,25 +797,25 @@ classdef simulator < handle
             
         end
         
-        function displayFullMap(micromouse)
-        % EXAMPLE FUNCTION CALL: micromouse.displayFullMap()
+        function displayFullMap(sim)
+        % EXAMPLE FUNCTION CALL: sim.displayFullMap()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-06-01
         % PURPOSE: Display the map with obstacles, start location, and target location
             
-            figure(micromouse.display.figureHandle); subplot(122);
+            figure(sim.display.figureHandle); subplot(122);
             title('Full Map');
             
             % Display obstacles, robot, and target location
-            for x = 1:micromouse.map.maxX % for all map x locations
-                for y = 1:micromouse.map.maxY % for all map y locations
-                    if (micromouse.map.coordinates(x, y) == micromouse.map.legend.obstacle) % if the current location is an obstacle
-                        micromouse.display.obstacleCount = micromouse.display.obstacleCount + 1; % increment obstacle counter
+            for x = 1:sim.map.maxX % for all map x locations
+                for y = 1:sim.map.maxY % for all map y locations
+                    if (sim.map.coordinates(x, y) == sim.map.legend.obstacle) % if the current location is an obstacle
+                        sim.display.obstacleCount = sim.display.obstacleCount + 1; % increment obstacle counter
                         plot(x, y, 'ro'); % show the obstacle
-                        displayBorders(micromouse.map.coordinates, x, y, micromouse.map.legend.obstacle); % display connected borders
-                    elseif (micromouse.map.coordinates(x, y) == micromouse.map.legend.target) % if the current location is the target
+                        displayBorders(sim.map.coordinates, x, y, sim.map.legend.obstacle); % display connected borders
+                    elseif (sim.map.coordinates(x, y) == sim.map.legend.target) % if the current location is the target
                         plot(x, y, 'gd'); % show the target
-                    elseif (micromouse.map.coordinates(x, y) == micromouse.map.legend.start) % if the current locaiton is the robot
+                    elseif (sim.map.coordinates(x, y) == sim.map.legend.start) % if the current locaiton is the robot
                         plot(x, y, 'bo'); % show the robot
                     end
                 end
@@ -819,7 +823,7 @@ classdef simulator < handle
             drawnow; % force MATLAB to draw the figure before continuing
             
             function displayBorders(map, x, y, obstacle)
-            % EXAMPLE FUNCTION CALL: displayBorders(micromouse.map.coordinates, x, y, micromouse.map.legend.obstacle)
+            % EXAMPLE FUNCTION CALL: displayBorders(sim.map.coordinates, x, y, sim.map.legend.obstacle)
             % PROGRAMMER: Frederick Wachter
             % DATE CREATED: 2016-06-07
             % PURPOSE: Displays lines between neighboring obstacles
