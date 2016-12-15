@@ -43,7 +43,7 @@ classdef simulator < handle
             sim.display.handles.robot      = -1;
             sim.display.displayedObstacles = [];
             sim.display.displayedLines     = [];
-            sim.display.delaySpeed         = 0.01;
+            sim.display.delaySpeed         = 0.001;
             
             % Robot Properties
             sim.robot.location       = [0,0];
@@ -94,7 +94,7 @@ classdef simulator < handle
 
         end
         
-        function moveRobot(sim, direction, openDirections)
+        function moveRobot(sim, direction)
         % EXAMPLE FUNCTION CALL: sim.moveRobot(direction)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-11
@@ -102,6 +102,7 @@ classdef simulator < handle
             
             figure(sim.display.figureHandle); subplot(121); % remove if faster speed needed
             
+            tic;
             % Check If Movement Allowed
             if (sim.robot.openDirections(direction) == 0)
                 error('Cannot move in desired direction. Not performing movement');
@@ -118,7 +119,8 @@ classdef simulator < handle
             sim.checkRobotBoundaries();
             drawnow;
             
-            pause(sim.display.delaySpeed);
+            time = max(sim.display.delaySpeed - toc, 0);
+            pause(time);
             
         end
         
@@ -133,6 +135,19 @@ classdef simulator < handle
             if (ishandle(sim.display.figureHandle))
                 alive = 1;
             end
+            
+        end
+        
+        function displayGoal(sim, location)
+        % EXAMPLE FUNCTION CALL: sim.isFigureAlive()
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-15
+        % PURPOSE: Display goal location on the mpa
+            
+            figure(sim.display.figureHandle); subplot(121);
+            plot(location(1), location(2), 'ok');
+            
+            sim.robot.map(location(1), location(2)) = sim.robot.legend.target;
             
         end
         

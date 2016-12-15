@@ -63,6 +63,16 @@ classdef node < handle
             end
             
         end
+        
+        function addStack(nodes, location, mapIndex)
+        % EXAMPLE FUNCTION CALL: nodes.popStack(nodes)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-14
+        % PURPOSE: Adds location to stack
+            
+            nodes.addToStack(location, mapIndex);
+            
+        end
 
         function popStack(nodes)
         % EXAMPLE FUNCTION CALL: nodes.popStack(nodes)
@@ -89,18 +99,14 @@ classdef node < handle
             
         end
         
-        function removeNodeDirection(nodes, location, direction)
+        function removeNodeDirection(nodes, direction)
         % EXAMPLE FUNCTION CALL: nodes.removeNodeDirection(location, direction)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-14
         % PURPOSE: Remove movement direction from specified node
             
-            [nodeExists, index] = nodes.checkNodeExists(location);
-            if ~(nodeExists)
-                error('Cannot remove direction from node that hasn''t been added yet');
-            end
-            
-            nodes.removeDirection(index, direction);
+            mapIndex = nodes.stack.map(end);
+            nodes.removeDirection(mapIndex, direction);
             
         end
         
@@ -120,7 +126,8 @@ classdef node < handle
         % DATE CREATED: 2016-12-14
         % PURPOSE: Get the last element open directions from node stack
             
-            openDirections = nodes.tracker.directions(nodes.stack.map(end), :);
+            mapIndex = nodes.stack.map(end);
+            openDirections = nodes.tracker.directions(mapIndex, :);
             
         end
         
@@ -154,7 +161,7 @@ classdef node < handle
         
         % Node Addition/Removal Functions
         
-        function addToStack(nodes, location)
+        function addToStack(nodes, location, mapIndex)
         % EXAMPLE FUNCTION CALL: nodes.addToStack(location)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-14
@@ -162,7 +169,11 @@ classdef node < handle
             
             nodes.stack.size = nodes.stack.size + 1;
             nodes.stack.data = [nodes.stack.data; location];
-            nodes.stack.map(nodes.stack.size)  = nodes.tracker.size+1;
+            if (exist('mapIndex', 'var'))
+                nodes.stack.map(nodes.stack.size) = mapIndex;
+            else
+                nodes.stack.map(nodes.stack.size)  = nodes.tracker.size+1;
+            end
             
         end
         
