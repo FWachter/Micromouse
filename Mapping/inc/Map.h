@@ -15,22 +15,37 @@
 #include <cmath>
 using namespace std;
 
+enum TURNS {o=0, l=1, r=2, rl=3, lr=3};
+
+#define MAP_RES 1
+#define SAME_NODE(x0, y0, x1, y1) (abs(x0-x1) < MAP_RES \
+	and abs(y0-y1) < MAP_RES)
+
 class Map {
 public:
 	// Default Constructor
 	Map();
 
 	// Constructor to initialize x,y start
-	Map(const double x, const double y);
+	Map(const double x, const double y, const TURNS t);
 
 	// Adds a node, specified by (x, y) point to the map
-	void addNode(const double x, const double y, const bool goal=0);
+	void addNode(const double x, const double y, const TURNS t, 
+		const bool goal=0);
 	
 	// Backtrack by popping off the stack
 	void backTrack(void);
 
-	// Returns the current Node
-	Node getCurrentNode() const;
+	// Notifies the Map that the current node results in a dead end
+	// This will cause the nodes reachable from this point to be deleted
+	void deadEnd(const double x, const double y);
+	void deadEnd(shared_ptr<Node>& n);
+
+	// Returns pointer to current Node so that user can alter turns
+	shared_ptr<Node> getCurrentNode() const;
+
+	// Returns pointer to Node referred to by (x,y) position
+	shared_ptr<Node> getNode(const double x, const double y);
 
 	// Finds the best path from start node to the goal node
 	stack<Node> bestFirstSearch() const;

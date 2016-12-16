@@ -51,7 +51,9 @@ public:
 	};
 
 	// Mutator methods
-	void addEdge(const shared_ptr<Node>& n1, const shared_ptr<Node>& n2) {
+	void addEdge(const shared_ptr<Node>& n1, const shared_ptr<Node>& n2)
+	{
+		// Edges are undirected
 		if(_edges.count(n1) == 0) {
 			_edges.insert(
 				pair<shared_ptr<Node>, vector<unique_ptr<Edge> > >
@@ -59,6 +61,13 @@ public:
 				vector<unique_ptr<Edge> >()));		
 		}
 		_edges.at(n1).push_back(make_unique<Edge>(n1,n2));
+		if(_edges.count(n2) == 0) {
+			_edges.insert(
+				pair<shared_ptr<Node>, vector<unique_ptr<Edge> > >
+				(n2, 
+				vector<unique_ptr<Edge> >()));		
+		}
+		_edges.at(n2).push_back(make_unique<Edge>(n2,n1));
 	};
 
 private:

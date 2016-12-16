@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 #include <vector>
+#include <memory>
 using namespace std;
 
 void printPath(stack<Node> path) {
@@ -13,12 +14,12 @@ void printPath(stack<Node> path) {
 }
 
 int main() {
-	Map m;
-	m.addNode(0,10);
-	m.addNode(10,10,true);
-	m.backTrack();
-	m.backTrack();
-	m.addNode(10,10.05);
+	Map m(0,0,r);
+	m.addNode(0,10,r);
+	m.addNode(10,10,r,true);
+	m.addNode(0,0.05,o);
 	printPath(m.bestFirstSearch());
+	shared_ptr<Node> curNode = m.getCurrentNode();
+	cout << "CurNode: (" << curNode->x << ", " << curNode->y << ")" << endl;
 	return 0;
 }
