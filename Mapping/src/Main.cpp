@@ -18,6 +18,7 @@ int main() {
 	m.addNode(0,10,r);
 	m.addNode(10,10,r,true);
 	m.addNode(0,0.05,o);
+	m.deadEnd(0,10);
 	printPath(m.bestFirstSearch());
 	shared_ptr<Node> curNode = m.getCurrentNode();
 	cout << "CurNode: (" << curNode->x << ", " << curNode->y << ")" << endl;

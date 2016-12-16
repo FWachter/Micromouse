@@ -15,9 +15,7 @@ using namespace std;
 class Edges {
 public:
 	// Default constructor
-	Edges() {
-		;
-	};
+	Edges() {;};
 
 	// Accessor methods
 	size_t numEdges(const shared_ptr<Node>& n) const {
@@ -68,6 +66,24 @@ public:
 				vector<unique_ptr<Edge> >()));		
 		}
 		_edges.at(n2).push_back(make_unique<Edge>(n2,n1));
+	};
+
+	// removes all edges outgoing and ingoing of Node n
+	void removeEdges(const shared_ptr<Node>& n) {
+		// remove outgoing edges
+		auto it = _edges.find(n);
+		if(it != _edges.end()) {
+			_edges.erase(it);
+		}
+		// find all edges that are ingoing to n and remove them
+		for(auto& p: _edges) {
+			for(auto e = p.second.begin(); e != p.second.end(); e++) {
+				if((*e)->node2 == n) {
+					e = p.second.erase(e);
+					break;
+				}
+			}
+		}
 	};
 
 private:

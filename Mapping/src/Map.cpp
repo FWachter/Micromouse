@@ -104,7 +104,25 @@ void Map::deadEnd(const double x, const double y) {
 }
 
 void Map::deadEnd(shared_ptr<Node>& n) {
-	;
+	// remove Node from _vertices
+	for(auto it = _vertices.begin(); it != _vertices.end(); it++) {
+		if(*it == n) {
+			_vertices.erase(it);
+			break;
+		}
+	}
+	// remove Node from _vt
+	for(auto it = _vt.at(_hash(n->x,n->y)).begin(); it !=
+		_vt.at(_hash(n->x,n->y)).end(); it++) {
+		if(*it == n) {
+			_vt.at(_hash(n->x,n->y)).erase(it);
+			break;
+		}
+	}
+	// remove all edges incident on n, including ingoing and outgoing
+	_edges.removeEdges(n);
+	// don't have to remove edge from _vStack since it should be
+	// backtracked anyways
 }
 
 // Finds the best path from start node to goal node and returns the path
