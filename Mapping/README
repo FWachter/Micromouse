@@ -1,1 +1,2 @@
-In order to run, you need to have a compiler support for c++14.
+In order to run, you need to have make and compiler support for c++14.
+
