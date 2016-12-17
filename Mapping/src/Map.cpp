@@ -18,14 +18,15 @@ using namespace std;
 
 // Constructor
 Map::Map() {
-	addNode(0,0,o);
+	addNode(0,0,N,o);
 	_startNode = getNode(0,0);
 }
 
 // Constructor to intialize (x,y) start
-Map::Map(const double x, const double y, const TURNS t) {
+Map::Map(const double x, const double y, const DIRECTION d, 
+	const TURNS t) {
 	// initialize start node as the cartesian point (x, y)
-	addNode(x,y,t);
+	addNode(x,y,d,t);
 	_startNode = getNode(x,y);
 }
 
@@ -53,13 +54,13 @@ shared_ptr<Node> Map::getNode(const double x, const double y) {
 }
 
 // Add a node to the map. Checks for duplicate points
-void Map::addNode(const double x, const double y, const TURNS t, 
-	const bool goal) {
+void Map::addNode(const double x, const double y, const DIRECTION d, 
+	const TURNS t, const bool goal) {
 	// vector didn't exist at this hash value
 	if(_vt.count(_hash(x,y)) == 0) {
 		_vt.insert(pair<unsigned int, vector<shared_ptr<Node> > >(
 			_hash(x,y), vector<shared_ptr<Node> >()));
-		shared_ptr<Node> newNode = make_shared<Node>(x,y,t);
+		shared_ptr<Node> newNode = make_shared<Node>(x,y,d,t);
 		_vt.at(_hash(x,y)).push_back(newNode);
 		_vertices.push_back(newNode);
 		addNode(newNode, goal);
@@ -73,7 +74,7 @@ void Map::addNode(const double x, const double y, const TURNS t,
 		auto it = find_if(vec.begin(), vec.end(), cmp);
 		if(it == vec.end()) {
 			// consider the point a new node
-			shared_ptr<Node> newNode = make_shared<Node>(x,y,t);
+			shared_ptr<Node> newNode = make_shared<Node>(x,y,d,t);
 			vec.push_back(newNode);
 			_vertices.push_back(newNode);
 			addNode(newNode, goal);
@@ -98,12 +99,12 @@ void Map::addNode(const shared_ptr<Node>& n, const bool goal) {
 // Dead end means that the outgoing paths from the Node specified by the
 // (x,y) point does not contribute to the goal, therefore we can remove
 // those paths to make the goal search faster.
-void Map::deadEnd(const double x, const double y) {
+void Map::removeNode(const double x, const double y) {
 	shared_ptr<Node> n = getNode(x,y);
-	deadEnd(n);
+	removeNode(n);
 }
 
-void Map::deadEnd(shared_ptr<Node>& n) {
+void Map::removeNode(shared_ptr<Node>& n) {
 	// remove Node from _vertices
 	for(auto it = _vertices.begin(); it != _vertices.end(); it++) {
 		if(*it == n) {
