@@ -15,7 +15,6 @@
 #include <cmath>
 using namespace std;
 
-
 #define MAP_RES 1
 #define SAME_NODE(x0, y0, x1, y1) (abs(x0-x1) < MAP_RES \
 	and abs(y0-y1) < MAP_RES)
@@ -26,11 +25,12 @@ public:
 	Map();
 
 	// Constructor to initialize x,y start
-	Map(const double x, const double y, const DIRECTION d, const TURNS t);
+	Map(const double x, const double y, const bool north, const bool east,
+		const bool south, const bool west);
 
 	// Adds a node, specified by (x, y) point to the map
-	void addNode(const double x, const double y, DIRECTION d,
-		const TURNS t, const bool goal=0);
+	void addNode(const double x, const double y, const bool north, const
+		bool east, const bool south, const bool west, const bool goal=0);
 	
 	// Backtrack by popping off the stack
 	void backTrack(void);

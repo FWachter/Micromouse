@@ -18,15 +18,15 @@ using namespace std;
 
 // Constructor
 Map::Map() {
-	addNode(0,0,N,o);
+	addNode(0,0,false,false,false,false);
 	_startNode = getNode(0,0);
 }
 
 // Constructor to intialize (x,y) start
-Map::Map(const double x, const double y, const DIRECTION d, 
-	const TURNS t) {
+Map::Map(const double x, const double y, const bool north, const bool east,
+	const bool south, const bool west) {
 	// initialize start node as the cartesian point (x, y)
-	addNode(x,y,d,t);
+	addNode(x,y,north,east,south,west);
 	_startNode = getNode(x,y);
 }
 
@@ -54,13 +54,14 @@ shared_ptr<Node> Map::getNode(const double x, const double y) {
 }
 
 // Add a node to the map. Checks for duplicate points
-void Map::addNode(const double x, const double y, const DIRECTION d, 
-	const TURNS t, const bool goal) {
+void Map::addNode(const double x, const double y, const bool north,
+	const bool west, const bool south, const bool east, const bool goal) {
 	// vector didn't exist at this hash value
 	if(_vt.count(_hash(x,y)) == 0) {
 		_vt.insert(pair<unsigned int, vector<shared_ptr<Node> > >(
 			_hash(x,y), vector<shared_ptr<Node> >()));
-		shared_ptr<Node> newNode = make_shared<Node>(x,y,d,t);
+		shared_ptr<Node> newNode =
+			make_shared<Node>(x,y,north,west,south,east);
 		_vt.at(_hash(x,y)).push_back(newNode);
 		_vertices.push_back(newNode);
 		addNode(newNode, goal);
@@ -74,7 +75,8 @@ void Map::addNode(const double x, const double y, const DIRECTION d,
 		auto it = find_if(vec.begin(), vec.end(), cmp);
 		if(it == vec.end()) {
 			// consider the point a new node
-			shared_ptr<Node> newNode = make_shared<Node>(x,y,d,t);
+			shared_ptr<Node> newNode =
+				make_shared<Node>(x,y,north,west,south,east);
 			vec.push_back(newNode);
 			_vertices.push_back(newNode);
 			addNode(newNode, goal);

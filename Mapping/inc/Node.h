@@ -6,27 +6,27 @@
 #ifndef __NODE__
 #define __NODE__
 
-enum TURNS {o=0, l=1, r=2, rl=3, lr=3};
 enum DIRECTION {N, E, S, W};
 
 class Node {
 public:
-	Node(double x, double y, DIRECTION d, TURNS t) {
+	Node(double x, double y, bool north=false, bool east=false, 
+		bool south=false, bool west=false) {
 		this->x = x;
 		this->y = y;
-		this->availableTurns = t;
-		this->direction = d;
+		this->availableDirections[N] = north;
+		this->availableDirections[E] = east;
+		this->availableDirections[S] = south;
+		this->availableDirections[W] = west;
 	};
 	double x; // x position
 	double y; // y position
-	// available turns to visit at each node
-	// 0: used all available directions
-	// 1: left direction available
-	// 2: right direction available
-	// 3: both directions available
-	unsigned int availableTurns;
-	// Direction the robot was facing when creating node
-	unsigned int direction;
+	// available directions to visit at each node
+	// availableDirections[N]: 1 if North is available, 0 else
+	// availableDirections[E]: 1 if East is available, 0 else
+	// availableDirections[S]: 1 if South is available, 0 else
+	// availableDirections[W]: 1 if West is available, 0 else
+	bool availableDirections[4];
 };
 
 #endif
