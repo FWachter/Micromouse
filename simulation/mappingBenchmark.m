@@ -12,7 +12,7 @@ totalMovements = zeros(tests, 1);
 for i = 1:tests
     clear sim nodes robot;
     node_Mapping;
-    totalMovements(i) = movements;
+    totalMovements(i) = sim.robot.movements;
 end
 
 cd ~/Documents/Github/Micromouse/simulation/tests;

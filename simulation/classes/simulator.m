@@ -51,6 +51,7 @@ classdef simulator < handle
             sim.robot.direction      = 1; % N: 1, E: 2, S: 3, W: 4
             sim.robot.openDirections = ones(1,4);
             sim.robot.map            = [];
+            sim.robot.movements      = 0;
             
             % Sensor Properties
             sim.sensor.lineOfSight = 2;
@@ -104,6 +105,8 @@ classdef simulator < handle
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-11
         % PURPOSE: Move robot one unit in a specified direction in simulation
+        
+            sim.robot.movements = sim.robot.movements + 1;
             
             if (sim.display.on)
                 figure(sim.display.figureHandle); subplot(121); % remove if faster speed needed

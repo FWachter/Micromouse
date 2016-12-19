@@ -11,6 +11,7 @@ classdef node < handle
     
     properties
         goal
+        commands
     end
     
     properties(SetAccess = private, GetAccess = private)
@@ -29,6 +30,9 @@ classdef node < handle
             
             % Initialize Goal Properties
             nodes.goal.location = [];
+            
+            % Initialize Command Properties
+            nodes.commands = {};
             
             % Initialize Stack Properties
             nodes.stack.size = 0;
@@ -63,6 +67,9 @@ classdef node < handle
                 warning('Node already exists');
             end
             
+            command = strcat('[AN] [', num2str(location), '] [', num2str(openDirections) ,']\n');
+            nodes.addCommand(command);
+            
         end
         
         function addStack(nodes, location, mapIndex)
@@ -73,6 +80,9 @@ classdef node < handle
             
             nodes.addToStack(location, mapIndex);
             
+            command = strcat('[AS] [', num2str(location), ']\n');
+            nodes.addCommand(command);
+            
         end
 
         function [location, mapIndex, stackIndex] = popStack(nodes)
@@ -82,7 +92,7 @@ classdef node < handle
         % PURPOSE: Remove last node in node stack
             
             if (nodes.stack.size == 0)
-                error('Cannot pop stack when the stack is empty');
+                error('Cannot pop stack when the stack is empty\n');
             end
             
             location = nodes.stack.data(end, :);
@@ -90,6 +100,9 @@ classdef node < handle
             stackIndex = nodes.tracker.stackIndex(nodes.stack.map(end));
             
             nodes.removeLastStackElement();
+            
+            command = strcat('[RS]\n');
+            nodes.addCommand(command);
             
         end
         
@@ -99,8 +112,13 @@ classdef node < handle
         % DATE CREATED: 2016-12-14
         % PURPOSE: Removes node at robots current location from node structure
             
+            location = nodes.stack.data(end, :);
+        
             nodes.removeLastStackElement();
             nodes.removeLastTrackerElement();
+            
+            command = strcat('[RN] [', num2str(location), ']\n');
+            nodes.addCommand(command);
             
         end
         
@@ -109,9 +127,13 @@ classdef node < handle
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-14
         % PURPOSE: Remove movement direction from specified node
-            
+        
+            location = nodes.stack.data(end, :);
             mapIndex = nodes.stack.map(end);
             nodes.removeDirection(mapIndex, direction);
+            
+            command = strcat('[RD] [', num2str(direction), '] [', num2str(location), ']\n');
+            nodes.addCommand(command);
             
         end
         
@@ -160,6 +182,29 @@ classdef node < handle
                 end
             end
             stackIndex = nodes.tracker.stackIndex(index);
+            
+        end
+        
+        function exportCommands(nodes, fileName)
+        % EXAMPLE FUNCTION CALL: nodes.exportCommands(fileName)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-19
+        % PURPOSE: Exports command executed in node class
+            
+            fileID = fopen(fileName, 'w');
+            fprintf(fileID, 'Exported commands from node class\n\n');
+            fprintf(fileID, '_____ Legend _____\n');
+            fprintf(fileID, '[AN] [location] [open directions] - add node\n');
+            fprintf(fileID, '[AS] [location] - add to stack\n');
+            fprintf(fileID, '[RS] - remove from stack\n');
+            fprintf(fileID, '[RN] [location] - remove node\n');
+            fprintf(fileID, '[RD] [direction] [location] - remove direction from node\n\n');
+            fprintf(fileID, 'Note: RN and RD are only called when on the node, not randomly\n\n');
+            for line = 1:length(nodes.commands)
+                fprintf(fileID, nodes.commands{line});
+            end
+            
+            fprintf('Export successful');
             
         end
         
@@ -232,6 +277,16 @@ classdef node < handle
         % PURPOSE: Remove movement direction from specified node
             
             nodes.tracker.directions(index, direction) = 0;
+            
+        end
+        
+        function addCommand(nodes, command)
+        % EXAMPLE FUNCTION CALL: nodes.addCommand(command)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-19
+        % PURPOSE: Add command to list of performed commands
+            
+            nodes.commands = [nodes.commands, command];
             
         end
         

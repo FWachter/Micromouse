@@ -7,8 +7,7 @@
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 % ISSUE: Dubplicate nodes are still being made for map3
-% Pop off stack to find optimal back track before starting to mvoe
-% Add to simulation abaility to play back node creation
+% Optimize pure backtrack movements (probably need subset search)
 
 %% Prepare Simulation
 
@@ -18,7 +17,6 @@ dbstop if error;
 sim   = simulator;
 nodes = node;
 robot = micromouse;
-astar = AStar_Structure_Fast;
 
 % Load Map Into Simulation
 displaySimulation = 1;
@@ -27,7 +25,6 @@ sim.getMap(map, displaySimulation);
 
 % Initialize Variables
 skipMove           = 0;
-movements          = 0;
 backtrack          = 0;
 removeLoop         = 0;
 stackIndex         = 0;
@@ -38,12 +35,13 @@ previousPosition   = zeros(1, 2);
 previousLocations  = zeros(5, 2);
 robotStartLocation = sim.robot.location;
 
+pause();
+
 nodes.addNode(robotStartLocation, zeros(1, 4));
 stackIndex = stackIndex + 1;
 
 % Make First Robot Movement
 sim.moveRobot(sim.robot.direction);
-movements = movements + 1;
 
 %% Run Simulation
 while (true)
@@ -56,14 +54,12 @@ while (true)
         if (skipMove)
             skipMove = 0;
         else
-            movements = movements + 1; % increment amount of movements
             previousPosition = sim.robot.location; % reset previous position
         
             % Get Parameters From Simulation
             robot.location       = robot.addCurrentLocation(sim.robot.location);
             robot.direction      = sim.robot.direction;
             robot.openDirections = sim.robot.openDirections;
-            openDirections = robot.openDirections;
         end
 
         if (robot.isAtGoalLocation) % if the robot is at the goal position
@@ -71,11 +67,10 @@ while (true)
             sim.displayGoal(robot.location);
             nodes.goal.location = robot.location;
             
-            for node = 1:4 % remove nodes that occupy goal area
+            for index = 1:4 % remove nodes that occupy goal area
                 nodes.popStack();
                 stackIndex = stackIndex - 1;
             end
-            clear node;
             
             backtrack = 1;
             dontRemoveNodes = 1;
@@ -91,7 +86,12 @@ while (true)
                     if (dontRemoveNodes)
                         nodes.popStack();
                     else
-                        nodes.removePreviousNode();
+                        if (sum(robot.openDirections) > 2)
+                            dontRemoveNodes = 1;
+                            nodes.popStack();
+                        else
+                            nodes.removePreviousNode();
+                        end
                     end
                     stackIndex = stackIndex - 1;
                     
@@ -111,7 +111,6 @@ while (true)
                     end
                     nodes.removeNodeDirection(robot.direction);
                 end
-                clear previousOpenDirections totalOpenDirections;
             elseif (removeLoop)
                 locations  = [];
                 innerLoops = [];
@@ -165,7 +164,7 @@ while (true)
         elseif (sum(robot.openDirections(1, :)) == 1) % if the robot hit a dead end
             backtrack = 1;
             dontRemoveNodes = 0; 
-            % add smart algorithm to go back optimally
+            % ever a situation where loops need to be removed??
             robot.direction = robot.getOppositeDirection(robot.direction);
         elseif ((robot.openDirections(robot.direction) ~= 1) || (sum(robot.openDirections) > 2))
             [nodeExists, index, stackRef] = nodes.checkNodeExists(robot.location);
@@ -191,7 +190,6 @@ while (true)
                     dontRemoveNodes = 1;
                     nodes.popStack();
                     stackIndex = stackIndex - 1;
-                    % add smart algorithm to go back optimally
                 end
             else
                 robot.openDirections(robot.getOppositeDirection(robot.direction)) = 0;
@@ -218,9 +216,10 @@ while (true)
 end
 
 if (backToStart)
-    fprintf('Traveled %d movements to search maze\n', movements);
+    fprintf('Traveled %d movements to search maze\n', sim.robot.movements);
     
     if (displaySimulation)
+        astar = AStar_Structure_Fast;
         astar.runMap(sim.robot.map, map.criteria);
         astar.removeSolution();
         astar.displayOptimizedSolution;
