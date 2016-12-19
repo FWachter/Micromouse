@@ -53,7 +53,8 @@ shared_ptr<Node> Map::getNode(const double x, const double y) {
 	return nullptr; // node was not in map
 }
 
-// Add a node to the map. Checks for duplicate points
+// Add a node to the map. Checks for duplicate points. If node is duplicate,
+// return true, otherwise return false.
 bool Map::addNode(const double x, const double y, const bool north,
 	const bool west, const bool south, const bool east, const bool goal) {
 	// vector didn't exist at this hash value
