@@ -11,11 +11,11 @@ classdef node < handle
     
     properties
         goal
-        stack
-        tracker
     end
     
     properties(SetAccess = private, GetAccess = private)
+        stack
+        tracker
     end
 
 %% CONSTRUCTOR METHOD
@@ -39,6 +39,7 @@ classdef node < handle
             nodes.tracker.size       = 0;
             nodes.tracker.data       = [];
             nodes.tracker.directions = [];
+            nodes.tracker.stackIndex = [];
             
         end
         
@@ -74,7 +75,7 @@ classdef node < handle
             
         end
 
-        function popStack(nodes)
+        function [location, mapIndex, stackIndex] = popStack(nodes)
         % EXAMPLE FUNCTION CALL: nodes.popStack(nodes)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-14
@@ -83,6 +84,10 @@ classdef node < handle
             if (nodes.stack.size == 0)
                 error('Cannot pop stack when the stack is empty');
             end
+            
+            location = nodes.stack.data(end, :);
+            mapIndex = nodes.stack.map(end);
+            stackIndex = nodes.tracker.stackIndex(nodes.stack.map(end));
             
             nodes.removeLastStackElement();
             
@@ -132,12 +137,16 @@ classdef node < handle
         end
         
         function openDirections = getNodeOpenDirections(nodes, index)
+        % EXAMPLE FUNCTION CALL: nodes = getNodeOpenDirections(index)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-14
+        % PURPOSE: Get open directions of a node at specified index
             
             openDirections = nodes.tracker.directions(index, :);
             
         end
         
-        function [nodeExists, index] = checkNodeExists(nodes, location)
+        function [nodeExists, index, stackIndex] = checkNodeExists(nodes, location)
         % EXAMPLE FUNCTION CALL: nodes.checkNodeExists(location)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-14
@@ -150,6 +159,7 @@ classdef node < handle
                     break;
                 end
             end
+            stackIndex = nodes.tracker.stackIndex(index);
             
         end
         
@@ -186,6 +196,7 @@ classdef node < handle
             nodes.tracker.size = nodes.tracker.size + 1;
             nodes.tracker.data = [nodes.tracker.data; location];
             nodes.tracker.directions = [nodes.tracker.directions; openDirections];
+            nodes.tracker.stackIndex = [nodes.tracker.stackIndex; nodes.stack.size];
             
         end
         
@@ -210,6 +221,7 @@ classdef node < handle
             nodes.tracker.size = nodes.tracker.size - 1;
             nodes.tracker.data = nodes.tracker.data(1:(end-1), :);
             nodes.tracker.directions = nodes.tracker.directions(1:(end-1), :);
+            nodes.tracker.stackIndex = nodes.tracker.stackIndex(1:(end-1), :);
             
         end
         

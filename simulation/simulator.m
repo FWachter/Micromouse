@@ -44,6 +44,7 @@ classdef simulator < handle
             sim.display.displayedObstacles = [];
             sim.display.displayedLines     = [];
             sim.display.delaySpeed         = 0.001;
+            sim.display.on                 = 0;
             
             % Robot Properties
             sim.robot.location       = [0,0];
@@ -62,7 +63,7 @@ classdef simulator < handle
 
     methods
         
-        function getMap(sim, map)
+        function getMap(sim, map, displaySim)
         % EXAMPLE FUNCTION CALL: sim.getMap(map)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-11
@@ -77,11 +78,15 @@ classdef simulator < handle
             sim.robot.map    = ones(size(map.data))*map.legend.freeSpace;
             sim.robot.legend = map.legend;
             
-            % Reset Figure Properties
-            sim.display.figureHandle     = -1;
+            sim.display.on = displaySim;
             
-            % Display Figure
-            sim.initializeFigure();
+            if (sim.display.on)
+                % Reset Figure Properties
+                sim.display.figureHandle     = -1;
+
+                % Display Figure
+                sim.initializeFigure();
+            end
             sim.displayFullMap();
             sim.displayMap();
             
@@ -100,7 +105,9 @@ classdef simulator < handle
         % DATE CREATED: 2016-12-11
         % PURPOSE: Move robot one unit in a specified direction in simulation
             
-            figure(sim.display.figureHandle); subplot(121); % remove if faster speed needed
+            if (sim.display.on)
+                figure(sim.display.figureHandle); subplot(121); % remove if faster speed needed
+            end
             
             tic;
             % Check If Movement Allowed
@@ -119,8 +126,10 @@ classdef simulator < handle
             sim.checkRobotBoundaries();
             drawnow;
             
-            time = max(sim.display.delaySpeed - toc, 0);
-            pause(time);
+            if (sim.display.on)
+                time = max(sim.display.delaySpeed - toc, 0);
+                pause(time);
+            end
             
         end
         
@@ -144,8 +153,10 @@ classdef simulator < handle
         % DATE CREATED: 2016-12-15
         % PURPOSE: Display goal location on the mpa
             
-            figure(sim.display.figureHandle); subplot(121);
-            plot(location(1), location(2), 'ok');
+            if (sim.display.on)
+                figure(sim.display.figureHandle); subplot(121);
+                plot(location(1), location(2), 'ok');
+            end
             
             sim.robot.map(location(1), location(2)) = sim.robot.legend.target;
             
@@ -177,7 +188,9 @@ classdef simulator < handle
             end
             
             % Update Display Location
-            set(sim.display.handles.robot, 'XData', sim.robot.location(1), 'YData', sim.robot.location(2));
+            if (sim.display.on == 1)
+                set(sim.display.handles.robot, 'XData', sim.robot.location(1), 'YData', sim.robot.location(2));
+            end
             
         end
         
@@ -244,18 +257,21 @@ classdef simulator < handle
             % Display Obstacles if Potential Obstacles are Validated to be Obstacles
             for obstacle = 1:size(obstacles, 1)
                 if (sim.map.coordinates(obstacles(obstacle, 1), obstacles(obstacle, 2)) == sim.map.legend.obstacle)
-                    
-                    plot(obstacles(obstacle, 1), obstacles(obstacle, 2), 'or');
+                    if (sim.display.on)
+                        plot(obstacles(obstacle, 1), obstacles(obstacle, 2), 'or');
+                    end
                     sim.display.displayedObstacles = [sim.display.displayedObstacles; obstacles(obstacle, :)];
                     sim.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = sim.robot.legend.obstacle;
                     
-                    for comparisonObstacle = 1:size(obstacles, 1)
-                        if (sim.map.coordinates(obstacles(comparisonObstacle, 1), obstacles(comparisonObstacle, 2)) == sim.map.legend.obstacle)
-                            if (obstacle ~= comparisonObstacle)
-                                if (sqrt((obstacles(obstacle, 1) - obstacles(comparisonObstacle, 1))^2 + (obstacles(obstacle, 2) - obstacles(comparisonObstacle, 2))^2) == 1)
-                                    line([obstacles(obstacle, 1), obstacles(comparisonObstacle, 1)], [obstacles(obstacle, 2), obstacles(comparisonObstacle, 2)], 'Color', 'r');
-                                    sim.display.displayedLines = [sim.display.displayedLines; (obstacles(obstacle, 1)+obstacles(comparisonObstacle, 1))/2, (obstacles(obstacle, 2)-obstacles(comparisonObstacle, 2))/2];
-                                    break;
+                    if (sim.display.on)
+                        for comparisonObstacle = 1:size(obstacles, 1)
+                            if (sim.map.coordinates(obstacles(comparisonObstacle, 1), obstacles(comparisonObstacle, 2)) == sim.map.legend.obstacle)
+                                if (obstacle ~= comparisonObstacle)
+                                    if (sqrt((obstacles(obstacle, 1) - obstacles(comparisonObstacle, 1))^2 + (obstacles(obstacle, 2) - obstacles(comparisonObstacle, 2))^2) == 1)
+                                        line([obstacles(obstacle, 1), obstacles(comparisonObstacle, 1)], [obstacles(obstacle, 2), obstacles(comparisonObstacle, 2)], 'Color', 'r');
+                                        sim.display.displayedLines = [sim.display.displayedLines; (obstacles(obstacle, 1)+obstacles(comparisonObstacle, 1))/2, (obstacles(obstacle, 2)-obstacles(comparisonObstacle, 2))/2];
+                                        break;
+                                    end
                                 end
                             end
                         end
@@ -540,15 +556,19 @@ classdef simulator < handle
                     
                     if (~obstacleAlreadyDisplayed)
                         sim.display.displayedObstacles = [sim.display.displayedObstacles; obstacles(obstacle, :)];
-                        displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
-                                                      sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, true);
+                        if (sim.display.on)
+                            displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                          sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, true);
+                        end
                         sim.robot.map(obstacles(obstacle, 1), obstacles(obstacle, 2)) = sim.robot.legend.obstacle;
                     else
                         obstacleAlreadyDisplayed = 0;
-                        displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
-                                                      sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, false);
+                        if (sim.display.on)
+                            displayLine = displayObstacle(sim.map.coordinates, obstacles(obstacle, 1), obstacles(obstacle, 2), ...
+                                                          sim.robot.location, sim.robot.direction, sim.map.legend, sim.display.displayedLines, false);
+                        end
                     end
-                    if (displayLine(1) ~= 0)
+                    if ((sim.display.on) && (displayLine(1) ~= 0))
                         sim.display.displayedLines = [sim.display.displayedLines; displayLine];
                     end
                 end
@@ -794,15 +814,19 @@ classdef simulator < handle
         % DATE CREATED: 2016-10-11
         % PURPOSE: Display the map with only objects that the sim can see
 
-            figure(sim.display.figureHandle); subplot(121);
-            title('Map from Robot');
+            if (sim.display.on)
+                figure(sim.display.figureHandle); subplot(121);
+                title('Map from Robot');
+            end
             
             % Display obstacles, robot, and target location
             for x = 1:sim.map.maxX % for all map x locations
                 for y = 1:sim.map.maxY % for all map y locations
                     if (sim.map.coordinates(x, y) == sim.map.legend.start) % if the current locaiton is the robot
                         sim.robot.location = [x, y];
-                        sim.display.handles.robot = plot(x, y, 'bo'); % show the robot
+                        if (sim.display.on)
+                            sim.display.handles.robot = plot(x, y, 'bo'); % show the robot
+                        end
                         sim.robot.map(x, y) = sim.robot.legend.start;
                         sim.robot.location          = [x, y];
                     end
@@ -818,19 +842,23 @@ classdef simulator < handle
         % DATE CREATED: 2016-06-01
         % PURPOSE: Display the map with obstacles, start location, and target location
             
-            figure(sim.display.figureHandle); subplot(122);
-            title('Full Map');
+            if (sim.display.on)
+                figure(sim.display.figureHandle); subplot(122);
+                title('Full Map');
+            end
             
             % Display obstacles, robot, and target location
             for x = 1:sim.map.maxX % for all map x locations
                 for y = 1:sim.map.maxY % for all map y locations
                     if (sim.map.coordinates(x, y) == sim.map.legend.obstacle) % if the current location is an obstacle
                         sim.display.obstacleCount = sim.display.obstacleCount + 1; % increment obstacle counter
-                        plot(x, y, 'ro'); % show the obstacle
-                        displayBorders(sim.map.coordinates, x, y, sim.map.legend.obstacle); % display connected borders
-                    elseif (sim.map.coordinates(x, y) == sim.map.legend.target) % if the current location is the target
+                        if (sim.display.on)
+                            plot(x, y, 'ro'); % show the obstacle
+                            displayBorders(sim.map.coordinates, x, y, sim.map.legend.obstacle); % display connected borders
+                        end
+                    elseif ((sim.display.on) && (sim.map.coordinates(x, y) == sim.map.legend.target)) % if the current location is the target
                         plot(x, y, 'gd'); % show the target
-                    elseif (sim.map.coordinates(x, y) == sim.map.legend.start) % if the current locaiton is the robot
+                    elseif ((sim.display.on) && (sim.map.coordinates(x, y) == sim.map.legend.start)) % if the current locaiton is the robot
                         plot(x, y, 'bo'); % show the robot
                     end
                 end

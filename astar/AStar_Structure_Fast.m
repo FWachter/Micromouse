@@ -138,7 +138,7 @@ classdef AStar_Structure_Fast < handle
             astar.planner.time.smoothPath     = 0;
             astar.planner.time.directionField = 0;
             
-            astar.planner.properties.polynomialOrder = 3;
+            astar.planner.properties.polynomialOrder = 4;
             
             % Alogrithm State Properties
             astar.state.time            = [];
