@@ -28,8 +28,9 @@ public:
 	Map(const double x, const double y, const bool north, const bool east,
 		const bool south, const bool west);
 
-	// Adds a node, specified by (x, y) point to the map
-	void addNode(const double x, const double y, const bool north, const
+	// Adds a node, specified by (x, y) point to the map. Returns true if
+	// node is a duplicate, otherwise false
+	bool addNode(const double x, const double y, const bool north, const
 		bool east, const bool south, const bool west, const bool goal=0);
 	
 	// Backtrack by popping off the stack

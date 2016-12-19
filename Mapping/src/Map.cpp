@@ -54,7 +54,7 @@ shared_ptr<Node> Map::getNode(const double x, const double y) {
 }
 
 // Add a node to the map. Checks for duplicate points
-void Map::addNode(const double x, const double y, const bool north,
+bool Map::addNode(const double x, const double y, const bool north,
 	const bool west, const bool south, const bool east, const bool goal) {
 	// vector didn't exist at this hash value
 	if(_vt.count(_hash(x,y)) == 0) {
@@ -65,6 +65,7 @@ void Map::addNode(const double x, const double y, const bool north,
 		_vt.at(_hash(x,y)).push_back(newNode);
 		_vertices.push_back(newNode);
 		addNode(newNode, goal);
+		return false;
 	}
 	else {
 		auto& vec = _vt.at(_hash(x,y));
@@ -80,9 +81,11 @@ void Map::addNode(const double x, const double y, const bool north,
 			vec.push_back(newNode);
 			_vertices.push_back(newNode);
 			addNode(newNode, goal);
+			return false;
 		}
 		else { // Node already existed
 			addNode(*it, goal);
+			return true;
 		}
 	}
 }
