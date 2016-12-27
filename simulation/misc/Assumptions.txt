@@ -1,0 +1,3 @@
+Assumptions:
+ - Robot is placed on the bottom right of the maze, and North is always the original direction of the robot
+ - Can't assume the wall directly to the right of the robot is closed, need a sensor there?
