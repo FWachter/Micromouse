@@ -6,31 +6,44 @@
 #ifndef __MICROMOUSE__
 #define __MICROMOUSE__
 
+#include <array>
+#include <memory>
 #include <string>
+
+#include "Location.h"
+#include "Node.h"
 using namespace std;
 
 class Micromouse {
 	public:
-		int direction = 1;
-		int location[2] = { 0, 0 };
-		int openDirections[4] = { 0, 0, 0, 0 };
+		int direction = 0; // 0 is North, 1 is East, 2 is South, and 4 is West
+		bool *availableDirections;
+		Location location(0, 0);
+		Location startLocation = location;
 
 		// Defualt constructor
 		Micromouse();
 
-		// Helper function(s)
-		void moveForward(); // move the robot forward (NOT USED DIRECTLY IN IMPLEMENTATION)
+		// Member function(s)
+		void moveForward(void); // move the robot forward (NOT USED DIRECTLY IN IMPLEMENTATION)
 
-		int reverseDirection(); // set robot direction to opposite direction of the robot direction
+		int reverseDirection(void); // set robot direction to opposite direction of the robot direction
 
-		int setTravelDirection(const int goal[2]); // set the travel direction based on goal location
+		int setTravelDirection(const int xGoal, const int yGoal); // set the travel direction based on goal location
 
-		int getTotalOpenDirections(); // get the total open directions
+		int getOppositeDirection(void); // get the opposite direction of robot
 
-		int chooseRandomDirection(const int input_openDirections); // choose a random direction to move based on input open directions
+		int getTotalAvailableDirections(void); // get total available directions from robot
+
+		int getTotalAvailableDirections(shared_ptr<Node> node); // get total available directions from node
+
+		int chooseOpenDirection(void); // choose the only direction that is open
+
+		int chooseRandomDirection(const int input_availableDirections); // choose a random direction to move based on input open directions
 
 	private:
-		string TRAVEL_DIRECTION_GOAL_ERROR = "Goal location is not valid";
+		const int MAX_DIRECTIONS = 4;
+		const string TRAVEL_DIRECTION_GOAL_ERROR = "Goal location is not valid";
 };
 
 #endif
