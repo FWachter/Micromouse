@@ -157,14 +157,12 @@ while (true)
                 
                 if (backtrack)
                     robot.direction = robot.getTravelDirection(robot.location, nodes.getPreviousNodeLocation());
-                    nodes.removeNodeDirection(robot.direction);
                 end
                 removeLoop = 0;
             end
         elseif (sum(robot.openDirections(1, :)) == 1) % if the robot hit a dead end
             backtrack = 1;
             dontRemoveNodes = 0; 
-            
             robot.direction = robot.getOppositeDirection(robot.direction);
         elseif ((robot.openDirections(robot.direction) ~= 1) || (sum(robot.openDirections) > 2))
             [nodeExists, index, stackRef] = nodes.checkNodeExists(robot.location);
@@ -173,9 +171,13 @@ while (true)
                     error('Stack reference is greater than current stack index');
                 end
                 % if statement above is for personal reason
+                    
+                nodes.addStack(robot.location, index);
+                stackIndex = stackIndex + 1;
                 
                 nodes.removeNodeDirection(robot.getOppositeDirection(robot.direction));
                 robot.openDirections = nodes.getNodeOpenDirections(index);
+                robot.openDirections(robot.getOppositeDirection(robot.direction)) = 0;
                 
                 if (robot.openDirections(robot.direction) == 1)
                     nodes.removeNodeDirection(robot.direction);
@@ -184,6 +186,8 @@ while (true)
                     backtrack       = 1;
                     removeLoop      = 1;
                     dontRemoveNodes = 1;
+                    nodes.popStack();
+                    stackIndex = stackIndex - 1;
                 end
             else
                 robot.openDirections(robot.getOppositeDirection(robot.direction)) = 0;
@@ -219,4 +223,3 @@ if (backToStart)
         astar.displayOptimizedSolution;
     end
 end
-
