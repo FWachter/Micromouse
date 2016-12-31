@@ -9,6 +9,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "Location.h"
 #include "Obstacles.h"
@@ -36,15 +37,18 @@ class Sensor {
 					while (getline(sensorFile, line)) { // remove header components
 						if (line.compare(0, 5, endOfHeader) == 0) {
 							getline(sensorFile, line);
+
 							break;
 						}
 					}
 
 					int x, y;
 					bool north, east, south, west;
+					vector<string> fields;
 					Location location;
 					Obstacles obstacles;
-					while (getline(sensorFile, line)) {
+					while (getline(sensorFile, line, ' ,[]')) {
+						split
 						// ADD: Delimit line into variables
 						location.setLocation(x, y);
 						obstacles.setObstacles(north, east, south, west);
