@@ -13,7 +13,7 @@ using namespace std;
 // Choose the only direction that is open
 int Micromouse::chooseOpenDirection(void) {
 	for (int i = 0; i < MAX_DIRECTIONS; i++) {
-		if (robot.availableDirections[i] == 1) {
+		if (robot.availableDirections.isAvailable(i)) {
 			direction = i;
 			break;
 		}
@@ -50,18 +50,7 @@ int Micromouse::getTotalAvailableDirections(void) {
 	int sum = 0;
 
 	for (int i = 0; i < MAX_DIRECTIONS; i++) {
-		sum += availableDirections[i];
-	}
-
-	return sum;
-}
-
-// Get total available directions from node
-int Micromouse::getTotalAvailableDirections(const shared_ptr<Node> &node) {
-	int sum = 0;
-
-	for (int i = 0; i < MAX_DIRECTIONS; i++) {
-		sum += node.availableDirections[i];
+		sum += availableDirections.isAvailable(i);
 	}
 
 	return sum;
@@ -103,15 +92,15 @@ int Micromouse::reverseDirection(void) {
 }
 
 // Get the travel direction from start to goal
-int Micromouse::setTravelDirection(const int xGoal, const int yGoal) {
-	if ((location.x == xGoal) && (location.y != yGoal) {
-		if (location.y > yGoal) {
+int Micromouse::setTravelDirection(const Location &input_location) {
+	if ((location.x == input_location.x) && (location.y != input_location.y) {
+		if (location.y > input_location.y) {
 			direction = 3;
 		} else {
 			direction = 1;
 		}
-	} else if ((location.y == yGoal) && (location.x != xGoal) {
-		if (location.x > xGoal) {
+	} else if ((location.y == input_location.y) && (location.x != input_location.x) {
+		if (location.x > input_location.x) {
 			direction = 4;
 		} else {
 			direction = 2;

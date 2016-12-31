@@ -151,10 +151,10 @@ classdef simulator < handle
         end
         
         function displayGoal(sim, location)
-        % EXAMPLE FUNCTION CALL: sim.isFigureAlive()
+        % EXAMPLE FUNCTION CALL: sim.displayGoal(location)
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-15
-        % PURPOSE: Display goal location on the mpa
+        % PURPOSE: Display goal location on the map
             
             if (sim.display.on)
                 figure(sim.display.figureHandle); subplot(121);
@@ -163,6 +163,47 @@ classdef simulator < handle
             
             sim.robot.map(location(1), location(2)) = sim.robot.legend.target;
             
+        end
+        
+        function exportDirectionVariables(sim, fileName)
+        % EXAMPLE FUNCTION CALL: sim.exportDirectionVariables(fileName)
+        % PROGRAMMER: Frederick Wachter
+        % DATE CREATED: 2016-12-30
+        % PURPOSE: Export log files of all open squares and their available directions 
+        
+            
+            % Change Directory to Log File Directory
+            filePath = mfilename('fullpath');
+            removalIndex = find(filePath == '/', 2, 'last');
+            cd(filePath(1:removalIndex(1)-1));
+            cd logFiles;
+            
+            % Open File
+            fileName = strcat(fileName, '.txt');
+            fileID = fopen(fileName, 'w');
+            
+            % Write File Header
+            fprintf(fileID, 'Exported open square available locations from map\n\n');
+            fprintf(fileID, '_____ Legend _____\n');
+            fprintf(fileID, '[location] [available directions]\n\n-----\n\n');
+            
+            % Write Data to File
+            for x = 1:sim.map.maxX
+                for y = 1:sim.map.maxY
+                    if (sim.map.coordinates(x, y) == sim.robot.legend.freeSpace)
+                        directions = zeros(1, 4);
+                        if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) == sim.robot.legend.freeSpace)); directions(1) = 1; end
+                        if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) == sim.robot.legend.freeSpace)); directions(2) = 1; end
+                        if ((y > 1) && (sim.map.coordinates(x, y-1) == sim.robot.legend.freeSpace)); directions(3) = 1; end
+                        if ((x > 1) && (sim.map.coordinates(x-1, y) == sim.robot.legend.freeSpace)); directions(4) = 1; end
+                        
+                        fprintf(fileID, '[%d %d] [%d %d %d %d]\n', x, y, directions(1), directions(2), directions(3), directions(4));
+                    end
+                end
+            end
+            fclose(fileID);
+            
+            fprintf('Export successful\n');
         end
         
     end

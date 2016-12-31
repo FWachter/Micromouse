@@ -18,7 +18,7 @@ using namespace std;
 class Micromouse {
 	public:
 		int direction = 0; // 0 is North, 1 is East, 2 is South, and 4 is West
-		bool *availableDirections;
+		Obstacles availableDirections;
 		Location location(0, 0);
 		Location startLocation = location;
 		deque<int> previousDirections;
@@ -37,15 +37,13 @@ class Micromouse {
 
 		int getTotalAvailableDirections(void); // get total available directions from robot
 
-		int getTotalAvailableDirections(const shared_ptr<Node> &node); // get total available directions from node
-
 		bool isAtGoalLocation(void); // check if robot is at the goal location
 
 		void moveForward(void); // move the robot forward (NOT USED DIRECTLY IN IMPLEMENTATION)
 
 		int reverseDirection(void); // set robot direction to opposite direction of the robot direction
 
-		int setTravelDirection(const int xGoal, const int yGoal); // set the travel direction based on goal location
+		int setTravelDirection(const Location &input_location); // set the travel direction based on goal location
 
 	private:
 		const int MAX_DIRECTIONS    = 4;

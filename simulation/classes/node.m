@@ -191,7 +191,17 @@ classdef node < handle
         % DATE CREATED: 2016-12-19
         % PURPOSE: Exports command executed in node class
             
+            % Change Directory to Log File Directory
+            filePath = mfilename('fullpath');
+            removalIndex = find(filePath == '/', 2, 'last');
+            cd(filePath(1:removalIndex(1)-1));
+            cd logFiles;
+        
+            % Open File
+            fileName = strcat(fileName, '.txt');
             fileID = fopen(fileName, 'w');
+            
+            % Write Header to File
             fprintf(fileID, 'Exported commands from node class\n\n');
             fprintf(fileID, '_____ Legend _____\n');
             fprintf(fileID, '[AN] [location] [open directions] - add node\n');
@@ -199,12 +209,15 @@ classdef node < handle
             fprintf(fileID, '[RS] - remove from stack\n');
             fprintf(fileID, '[RN] [location] - remove node\n');
             fprintf(fileID, '[RD] [direction] [location] - remove direction from node\n\n');
-            fprintf(fileID, 'Note: RN and RD are only called when on the node, not randomly\n\n');
+            fprintf(fileID, 'Note: RN and RD are only called when on the node, not randomly\n\n\n\n-----\n\n');
+            
+            % Write Data to File
             for line = 1:length(nodes.commands)
                 fprintf(fileID, nodes.commands{line});
             end
+            fclose(fileID);
             
-            fprintf('Export successful');
+            fprintf('Export successful\n');
             
         end
         

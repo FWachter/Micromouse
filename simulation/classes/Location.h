@@ -22,6 +22,12 @@ class Location {
 			this->y = y;
 		}
 
+		// Member function(s)
+		void setLocation(const int x, const int y) {
+			this->x = x;
+			this->y = y;
+		}
+
 		// Overloaded operators
 		bool operator == (const Location &rhs) {
 			if ((x == rhs.x) && (y == rhs.y)) {
