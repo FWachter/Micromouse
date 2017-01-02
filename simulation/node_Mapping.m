@@ -42,6 +42,7 @@ stackIndex = stackIndex + 1;
 
 % Make First Robot Movement
 sim.moveRobot(sim.robot.direction);
+robot.addCurrentLocation();
 
 %% Run Simulation
 while (true)
@@ -57,24 +58,10 @@ while (true)
             previousPosition = sim.robot.location; % reset previous position
         
             % Get Parameters From Simulation
-            robot.location       = robot.addCurrentLocation(sim.robot.location);
+            robot.location       = sim.robot.location;
             robot.direction      = sim.robot.direction;
             robot.openDirections = sim.robot.openDirections;
-        end
-
-        if (robot.isAtGoalLocation) % if the robot is at the goal position
-            goalPositionFound = 1;
-            sim.displayGoal(robot.location);
-            nodes.goal.location = robot.location;
-            
-            for index = 1:4 % remove nodes that occupy goal area
-                nodes.popStack();
-                stackIndex = stackIndex - 1;
-            end
-            
-            backtrack = 1;
-            dontRemoveNodes = 1;
-            robot.direction = robot.getTravelDirection(robot.location, nodes.getPreviousNodeLocation());
+            robot.addCurrentLocation();
         end
         
         if (backtrack) % if the robot is backtracking through the node structure
@@ -96,6 +83,7 @@ while (true)
                     stackIndex = stackIndex - 1;
                     
                     if (sum(robotStartLocation == robot.location) == 2) % if the robot is back at the start location
+                        fprintf('Robot back at start location, simultion finished\n');
                         backToStart = 1;
                         break;
                     end
@@ -207,6 +195,23 @@ while (true)
         end
         
         if ~(skipMove)
+            sim.moveRobot(robot.direction);
+        end
+        
+        if ((~goalPositionFound) && (robot.isAtGoalLocation)) % if the robot is at the goal position
+            goalPositionFound = 1;
+            sim.displayGoal(robot.location);
+            nodes.goal.location = robot.location;
+            
+            for index = 1:4 % remove nodes that occupy goal area
+                nodes.popStack();
+                stackIndex = stackIndex - 1;
+            end
+            
+            backtrack = 1;
+            dontRemoveNodes = 1;
+            robot.direction = robot.getTravelDirection(robot.location, nodes.getPreviousNodeLocation());
+            
             sim.moveRobot(robot.direction);
         end
     end

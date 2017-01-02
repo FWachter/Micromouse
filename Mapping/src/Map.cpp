@@ -35,6 +35,11 @@ void Map::backTrack(void) {
 	_vStack.pop();
 }
 
+// Returns the size of the stack of nodes
+int Map::stackSize(void) {
+	return _vStack.size();
+}
+
 // Returns pointer to the current Node at top of stack
 shared_ptr<Node> Map::getCurrentNode() const {
 	return _vStack.top();

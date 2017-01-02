@@ -36,6 +36,9 @@ public:
 	// Backtrack by popping off the stack
 	void backTrack(void);
 
+	// Returns the size of the stack of nodes
+	int stackSize(void);
+
 	// Notifies the Map that the current node results in a dead end
 	// This will cause the nodes reachable from this point to be deleted
 	void removeNode(const double x, const double y);

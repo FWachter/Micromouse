@@ -51,7 +51,7 @@ classdef micromouse < handle
         % PURPOSE: Adds provided location to array used to check for if the robot is in the goal position
             
             robot.goal.locations(2:5, :) = robot.goal.locations(1:4, :);
-            robot.goal.locations(1, :)   = location;
+            robot.goal.locations(1, :)   = robot.location;
             
         end
         

@@ -38,13 +38,16 @@ classdef simulator < handle
             sim.map.startLocation    = [0,0];
             
             % Figure Properties
-            sim.display.obstacleCount      = 0;
-            sim.display.figureHandle       = -1;
-            sim.display.handles.robot      = -1;
-            sim.display.displayedObstacles = [];
-            sim.display.displayedLines     = [];
-            sim.display.delaySpeed         = 0.001;
-            sim.display.on                 = 0;
+            sim.display.obstacleCount         = 0;
+            sim.display.figureHandle          = -1;
+            sim.display.handles.robot         = -1;
+            sim.display.displayedObstacles    = [];
+            sim.display.displayedLines        = [];
+            sim.display.delaySpeed            = 0.001;
+            sim.display.on                    = 0;
+            sim.display.initialRobotLocation  = zeros(1, 2);
+            sim.display.initialRobotDirection = 0;
+            sim.display.mapSet                = 0;
             
             % Robot Properties
             sim.robot.location       = [0,0];
@@ -90,6 +93,8 @@ classdef simulator < handle
             end
             sim.displayFullMap();
             sim.displayMap();
+            
+            sim.display.mapSet = 1;
             
             % Get Initial Parameters
             sim.getRobotOrientation();
@@ -170,40 +175,73 @@ classdef simulator < handle
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-12-30
         % PURPOSE: Export log files of all open squares and their available directions 
-        
-            
-            % Change Directory to Log File Directory
-            filePath = mfilename('fullpath');
-            removalIndex = find(filePath == '/', 2, 'last');
-            cd(filePath(1:removalIndex(1)-1));
-            cd logFiles;
-            
-            % Open File
-            fileName = strcat(fileName, '.txt');
-            fileID = fopen(fileName, 'w');
-            
-            % Write File Header
-            fprintf(fileID, 'Exported open square available locations from map\n\n');
-            fprintf(fileID, '_____ Legend _____\n');
-            fprintf(fileID, '[location] [available directions]\n\n-----\n\n');
-            
-            % Write Data to File
-            for x = 1:sim.map.maxX
-                for y = 1:sim.map.maxY
-                    if (sim.map.coordinates(x, y) == sim.robot.legend.freeSpace)
-                        directions = zeros(1, 4);
-                        if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) == sim.robot.legend.freeSpace)); directions(1) = 1; end
-                        if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) == sim.robot.legend.freeSpace)); directions(2) = 1; end
-                        if ((y > 1) && (sim.map.coordinates(x, y-1) == sim.robot.legend.freeSpace)); directions(3) = 1; end
-                        if ((x > 1) && (sim.map.coordinates(x-1, y) == sim.robot.legend.freeSpace)); directions(4) = 1; end
-                        
-                        fprintf(fileID, '[%d %d] [%d %d %d %d]\n', x, y, directions(1), directions(2), directions(3), directions(4));
+
+            if (sim.display.mapSet)
+                % Change Directory to Log File Directory
+                filePath = mfilename('fullpath');
+                removalIndex = find(filePath == '/', 2, 'last');
+                cd(filePath(1:removalIndex(1)-1));
+                cd logFiles;
+
+                % Open File
+                fileName = strcat(fileName, '.txt');
+                fileID = fopen(fileName, 'w');
+
+                % Write File Header
+                fprintf(fileID, 'Exported open square available locations from map\n\n');
+                fprintf(fileID, '_____ Legend _____\n');
+                fprintf(fileID, '[initial robot direction] [initial right wall open]\n');
+                fprintf(fileID, '[location] [available directions]\n\n-----\n\n');
+
+                % Get Rqeuired Data
+                initialDirection = sim.display.initialRobotDirection;
+                if (initialDirection == 1)
+                    if (sim.display.initialRobotLocation(1) == sim.map.maxX)
+                        initialRightWallOpen = 0;
+                    else
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)+1, sim.display.initialRobotLocation(2)) == sim.map.legend.freeSpace);
+                    end
+                elseif (initialDirection == 2)
+                    if (sim.display.initialRobotLocation(2) == 1)
+                        initialRightWallOpen = 0;
+                    else
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)-1) == sim.map.legend.freeSpace);
+                    end
+                elseif (initialDirection == 3)
+                    if (sim.display.initialRobotLocation(1) == 1)
+                        initialRightWallOpen = 0;
+                    else
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)-1, sim.display.initialRobotLocation(2)) == sim.map.legend.freeSpace);
+                    end
+                else
+                    if (sim.display.initialRobotLocation(2) == sim.map.maxY)
+                        initialRightWallOpen = 0;
+                    else
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)+1) == sim.map.legend.freeSpace);
                     end
                 end
+
+                % Write Data to File
+                fprintf(fileID, '[%d] [%d]\n', initialDirection-1, initialRightWallOpen); % in C++, directions start with 0 not 1 as in MATLAB
+                for x = 1:sim.map.maxX
+                    for y = 1:sim.map.maxY
+                        if (sim.map.coordinates(x, y) == sim.robot.legend.freeSpace)
+                            directions = zeros(1, 4);
+                            if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) == sim.robot.legend.freeSpace)); directions(1) = 1; end
+                            if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) == sim.robot.legend.freeSpace)); directions(2) = 1; end
+                            if ((y > 1) && (sim.map.coordinates(x, y-1) == sim.robot.legend.freeSpace)); directions(3) = 1; end
+                            if ((x > 1) && (sim.map.coordinates(x-1, y) == sim.robot.legend.freeSpace)); directions(4) = 1; end
+
+                            fprintf(fileID, '[%d %d] [%d %d %d %d]\n', x, y, directions(1), directions(2), directions(3), directions(4));
+                        end
+                    end
+                end
+                fclose(fileID);
+
+                fprintf('Export successful\n');
+            else
+                fprintf('Error: Map was not set before running function\nPlease set the map using the function getMap() before running this function\n');
             end
-            fclose(fileID);
-            
-            fprintf('Export successful\n');
         end
         
     end
@@ -293,6 +331,8 @@ classdef simulator < handle
             
             if ~(directionSet)
                 error('Fatal error in getRobotOrientation function');
+            else
+                sim.display.initialRobotDirection = sim.robot.direction;
             end
             
             % Get Potential Obstacle Locations Based on Start Location and Direction
@@ -872,7 +912,8 @@ classdef simulator < handle
                             sim.display.handles.robot = plot(x, y, 'bo'); % show the robot
                         end
                         sim.robot.map(x, y) = sim.robot.legend.start;
-                        sim.robot.location          = [x, y];
+                        sim.robot.location  = [x, y];
+                        sim.display.initialRobotLocation = sim.robot.location;
                     end
                 end
             end
