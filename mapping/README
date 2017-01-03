@@ -1,0 +1,6 @@
+This is an API to provide a framework for Micromouse mapping. The methods
+are located in Map.h. Some methods require std::memory to be included as
+shared_ptr's are returned.
+
+In order to run, you need to have make and compiler support for c++14.
+
