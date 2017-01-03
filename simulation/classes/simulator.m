@@ -190,7 +190,7 @@ classdef simulator < handle
                 % Write File Header
                 fprintf(fileID, 'Exported open square available locations from map\n\n');
                 fprintf(fileID, '_____ Legend _____\n');
-                fprintf(fileID, '[initial robot direction] [initial right wall open]\n');
+                fprintf(fileID, '[initial robot direction] [initial right wall open] [initial robot location]\n');
                 fprintf(fileID, '[location] [available directions]\n\n-----\n\n');
 
                 % Get Rqeuired Data

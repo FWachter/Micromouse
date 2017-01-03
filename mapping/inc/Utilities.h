@@ -29,8 +29,28 @@ void displayRobotState(const Location &location, const int &direction,
 
 void displayRobotState(const Micromouse &robot);
 
+void displaySensorFileStart(void);
+
+void displaySensorFileEnd(void);
+
 void displaySensorFileData(const int &x, const int &y, const bool &north,
 	const bool &east, const bool &south, const bool &west);
+
+void displayRobotMovement(void);
+
+void displayBacktrackRemoveLoops(const int &nodesInLoop);
+
+void displayBacktrackQueue(void);
+
+void displayBacktrackPreviousNode(void);
+
+void displayBacktrack(void);
+
+void displayDeadEnd(void);
+
+void displaySolutionFound(const int &totalMovements);
+
+void displayBeginningAlgorithm(void);
 
 #endif
 

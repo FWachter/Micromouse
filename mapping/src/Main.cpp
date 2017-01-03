@@ -26,13 +26,16 @@ int main() {
 
 	// Initialize objects
 	Sensor sensor(sensorFile);
-	Micromouse robot(sensor.initialLocation);
-	Map map(robot.location.x, robot.location.y, true, sensor.initialRightWallOpen, false, false);
+	Micromouse robot(sensor.initialLocation, sensor.initialDirection,
+		sensor.getAvailableDirections(sensor.initialLocation));
+	Map map(robot.location.x, robot.location.y, robot.availableDirections.isAvailable(0), 
+		robot.availableDirections.isAvailable(1), robot.availableDirections.isAvailable(2),
+		robot.availableDirections.isAvailable(3));
+	displayBeginningAlgorithm();
 
 	// Move robot forward
 	robot.direction = sensor.initialDirection;
 	robot.moveForward();
-	cout << "----- Robot moved forward -----" << endl;
 	robot.availableDirections = sensor.getAvailableDirections(robot.location);
 	displayRobotState(robot);
 	// NOTE: line above is only meant for sim purposes
@@ -60,41 +63,41 @@ int main() {
 
 		int totalAvailableDirections = robot.getTotalAvailableDirections();
 		if (backTrack) { // if the robot is to backTrack
-			cout << "----- Backtracking... ";
 			shared_ptr<Node> previousNode = map.getCurrentNode();
 
 			if (runQueue) { // if the robot is to run through the queue generated while trying to remove loops
-				cout << "running queue -----" << endl;
+				displayBacktrackQueue();
 				if (robot.location == nodeQueue.front()->location) {
 					nodeQueue.pop_front();
 					if (nodeQueue.empty()) {
 						runQueue  = 0;
 						backTrack = 0;
 
-						robot.availableDirections = map.getCurrentNode()->availableDirections;
+						shared_ptr<Node> node = map.getCurrentNode();
+						robot.availableDirections = node->availableDirections;
 						if (robot.getTotalAvailableDirections() == 1) {
 							robot.chooseOpenDirection();
 						} else {
 							robot.chooseRandomDirection();
 						}
+						node->availableDirections.removeDirection(robot.direction);
 					} else {
 						robot.setTravelDirection(nodeQueue.front()->location);
 					}
 				}
 			} else if (removeLoop) { // if the robot is to try to remove loops while backtracking
-				cout << "removing loops -----" << endl;
 				deque<shared_ptr<Node>> nodes;
 				stack<shared_ptr<Node>> innerLoops;
 				stack<int> innerLoopIndexes;
 
-				int nodesInLoop = (map.stackSize()+1) - map.getCurrentNode()->stackRef;
-				cout << "----- nodes in loop " << nodesInLoop << " -----"<< endl;
+				int nodesInLoop = map.stackSize() - map.getCurrentNode()->stackRef;
+				map.backTrack();
+				displayBacktrackRemoveLoops(nodesInLoop);
 				for (int i = 0; i < nodesInLoop; i++) {
 					shared_ptr<Node> node = map.getCurrentNode();
 					nodes.push_back(node);
 
 					if ((!innerLoops.empty()) && (node->location == innerLoops.top()->location)) { // if back at an inner loop start location
-						cout << "1" << endl;
 						for (int j = i; j > innerLoopIndexes.top(); j--) { // remove inner loop from deque
 							nodes.pop_back();
 						}
@@ -103,14 +106,13 @@ int main() {
 					}
 
 					if (node->stackRef != map.stackSize()) { // if the current location the robot is on has been added to the stack before the current instance
-						cout << "2" << endl;
 						innerLoopIndexes.push(i);
 						innerLoops.push(node);
 					} else {
-						cout << "3" << endl;
 						if (node->getTotalAvailableDirections() != 0) { // if there is another option to try in the potential loop
 							runQueue  = 1;
 							nodeQueue = nodes;
+							displayBacktrackQueue();
 							robot.setTravelDirection(nodeQueue.front()->location);
 							break;
 						}
@@ -123,7 +125,7 @@ int main() {
 				}
 				removeLoop = 0;
 			} else if ((robot.location.x == previousNode->location.x) && (robot.location.y == previousNode->location.y)) { // if the robot is at the previous node location
-				cout << "pure backtrack -----" << endl;
+				displayBacktrackPreviousNode();
 				totalAvailableDirections = previousNode->getTotalAvailableDirections();
 
 				if (totalAvailableDirections == 0) { // if there are no options for the robot to move
@@ -137,10 +139,11 @@ int main() {
 					}
 
 					if (robot.location == robot.startLocation) { // if the robot arrived back to the start location
-						cout << "----- Solution has been found! Backtracking -----" << endl;
+						displaySolutionFound(robot.totalMovements);
 						break;
 					}
 
+					previousNode = map.getCurrentNode();
 					robot.setTravelDirection(previousNode->location);
 				} else {
 					backTrack = 0;
@@ -153,31 +156,29 @@ int main() {
 					}
 					previousNode->availableDirections.removeDirection(robot.direction);
 				}
-			} else {
-				cout << endl;
+			} else {				
+				displayBacktrack();
 			}
 		} else if (totalAvailableDirections == 1) { // if the robot hit a dead end
 			backTrack   = 1;
 			removeNodes = 1;
 			robot.reverseDirection();
-			cout << "------ Hit dead end -----" << endl;
+			displayDeadEnd();
 		} else if ((!robot.availableDirections.isAvailable(robot.direction)) || (totalAvailableDirections > 2)) { // if the robot is not able to move forward or there are more than two options available
 			bool nodeExists = map.addNode(robot.location.x, robot.location.y, map.stackSize()+1,
 										  robot.availableDirections.isAvailable(0), robot.availableDirections.isAvailable(1), 
 										  robot.availableDirections.isAvailable(2), robot.availableDirections.isAvailable(3), false);
 			shared_ptr<Node> node = map.getCurrentNode();
 			node->availableDirections.removeDirection(robot.getOppositeDirection());
-			cout << "----- Node added -----" << endl;
 			// NOTE: The opposite direction might already be removed in implementation for when passed to map.addNode
 			
-			if (nodeExists) {
+			if (nodeExists) { // if the node that was attempted to be created already exists
 				if (node->availableDirections.isAvailable(robot.direction)) { // if the robot can move forward
 					node->availableDirections.removeDirection(robot.direction);
 				} else {
 					backTrack   = 1;
 					removeLoop  = 1;
 					removeNodes = 0;
-					map.backTrack();
 				}
 			} else {
 				if (!node->availableDirections.isAvailable(robot.direction)) {
@@ -193,7 +194,6 @@ int main() {
 		}
 
 		if (!removeLoop) {
-			cout << "----- Robot moved forward -----" << endl;
 			robot.moveForward();
 			robot.availableDirections = sensor.getAvailableDirections(robot.location);
 			displayRobotState(robot);
