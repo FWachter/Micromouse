@@ -222,10 +222,10 @@ classdef simulator < handle
                 end
 
                 % Write Data to File
-                fprintf(fileID, '[%d] [%d] [%d %d]\n', initialDirection-1, initialRightWallOpen, sim.dispay.initialRobotLocation(1), sim.display.initialRobotLocation(2)); % in C++, directions start with 0 not 1 as in MATLAB
+                fprintf(fileID, '[%d] [%d] [%d %d]\n', initialDirection-1, initialRightWallOpen, sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)); % in C++, directions start with 0 not 1 as in MATLAB
                 for x = 1:sim.map.maxX
                     for y = 1:sim.map.maxY
-                        if (sim.map.coordinates(x, y) == sim.robot.legend.freeSpace)
+                        if ((sim.map.coordinates(x, y) == sim.robot.legend.freeSpace) || (sim.map.coordinates(x, y) == sim.robot.legend.start) || (sim.map.coordinates(x, y) == sim.robot.legend.target))
                             directions = zeros(1, 4);
                             if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) == sim.robot.legend.freeSpace)); directions(1) = 1; end
                             if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) == sim.robot.legend.freeSpace)); directions(2) = 1; end
