@@ -6,9 +6,7 @@
 #ifndef __SENSOR__
 #define __SENSOR__
 
-#include <fstream>
 #include <map>
-#include <sstream>
 #include <string>
 
 #include "Location.h"
@@ -16,27 +14,27 @@
 using namespace std;
 
 class Sensor {
-	public:
-		int initialDirection;
-		bool initialRightWallOpen;
-		Location initialLocation;
+public:
+	int initialDirection;
+	bool initialRightWallOpen;
+	Location initialLocation;
 
-		// Defualt constructor
-		Sensor() {}
+	// Defualt constructor
+	Sensor() {}
 
-		// Alternate constructor(s)
-		Sensor(const string &fileName);
+	// Alternate constructor(s)
+	Sensor(const string &fileName);
 
-		// Member Function(s)
-		bool loadSensorFile(const string &fileName);
+	// Member Function(s)
+	bool loadSensorFile(const string &fileName);
 
-		Obstacles getAvailableDirections(const Location &location);
-	private:
-		map<Location, Obstacles> sensorMap;
+	Obstacles getAvailableDirections(const Location &location);
+private:
+	map<Location, Obstacles> sensorMap;
 
-		const string badFile     = "The provided file could not be opened or does not exist";
-		const string emptyFile   = "The provided file is empty";
-		const string endOfHeader = "-----";
+	const string badFile     = "The provided file could not be opened or does not exist";
+	const string emptyFile   = "The provided file is empty";
+	const string endOfHeader = "-----";
 };
 
 #endif

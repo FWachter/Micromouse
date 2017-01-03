@@ -13,6 +13,7 @@
 
 #include "Location.h"
 #include "Node.h"
+#include "Obstacles.h"
 using namespace std;
 
 class Micromouse {

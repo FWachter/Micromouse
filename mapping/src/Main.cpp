@@ -17,6 +17,7 @@ using namespace std;
 
 // MODIFY: Initialize Map at start location
 // QUESTION: Need to modify data from MATLAB due to the way the matrix is stored? I don't think so
+// ADD: ROS_DEBUG to functions to understand what is going on in the background
 
 int main() {
 
@@ -31,7 +32,9 @@ int main() {
 	// Move robot forward
 	robot.direction = sensor.initialDirection;
 	robot.moveForward();
+	cout << "----- Robot moved forward -----" << endl;
 	robot.availableDirections = sensor.getAvailableDirections(robot.location);
+	displayRobotState(robot);
 	// NOTE: line above is only meant for sim purposes
 
 	bool runQueue    = 0;
@@ -57,11 +60,11 @@ int main() {
 
 		int totalAvailableDirections = robot.getTotalAvailableDirections();
 		if (backTrack) { // if the robot is to backTrack
-			cout << "Backtracking... ";
+			cout << "----- Backtracking... ";
 			shared_ptr<Node> previousNode = map.getCurrentNode();
 
 			if (runQueue) { // if the robot is to run through the queue generated while trying to remove loops
-				cout << "running queue" << endl;
+				cout << "running queue -----" << endl;
 				if (robot.location == nodeQueue.front()->location) {
 					nodeQueue.pop_front();
 					if (nodeQueue.empty()) {
@@ -79,13 +82,13 @@ int main() {
 					}
 				}
 			} else if (removeLoop) { // if the robot is to try to remove loops while backtracking
-				cout << "removing loops" << endl;
+				cout << "removing loops -----" << endl;
 				deque<shared_ptr<Node>> nodes;
 				stack<shared_ptr<Node>> innerLoops;
 				stack<int> innerLoopIndexes;
 
 				int nodesInLoop = (map.stackSize()+1) - map.getCurrentNode()->stackRef;
-				cout << "nodes in loop " << nodesInLoop << endl;
+				cout << "----- nodes in loop " << nodesInLoop << " -----"<< endl;
 				for (int i = 0; i < nodesInLoop; i++) {
 					shared_ptr<Node> node = map.getCurrentNode();
 					nodes.push_back(node);
@@ -120,7 +123,7 @@ int main() {
 				}
 				removeLoop = 0;
 			} else if ((robot.location.x == previousNode->location.x) && (robot.location.y == previousNode->location.y)) { // if the robot is at the previous node location
-				cout << "pure backtrack" << endl;
+				cout << "pure backtrack -----" << endl;
 				totalAvailableDirections = previousNode->getTotalAvailableDirections();
 
 				if (totalAvailableDirections == 0) { // if there are no options for the robot to move
@@ -134,7 +137,7 @@ int main() {
 					}
 
 					if (robot.location == robot.startLocation) { // if the robot arrived back to the start location
-						cout << "Solution has been found! Backtracking" << endl;
+						cout << "----- Solution has been found! Backtracking -----" << endl;
 						break;
 					}
 
@@ -157,14 +160,14 @@ int main() {
 			backTrack   = 1;
 			removeNodes = 1;
 			robot.reverseDirection();
-			cout << "Hit dead end" << endl;
+			cout << "------ Hit dead end -----" << endl;
 		} else if ((!robot.availableDirections.isAvailable(robot.direction)) || (totalAvailableDirections > 2)) { // if the robot is not able to move forward or there are more than two options available
 			bool nodeExists = map.addNode(robot.location.x, robot.location.y, map.stackSize()+1,
 										  robot.availableDirections.isAvailable(0), robot.availableDirections.isAvailable(1), 
 										  robot.availableDirections.isAvailable(2), robot.availableDirections.isAvailable(3), false);
 			shared_ptr<Node> node = map.getCurrentNode();
 			node->availableDirections.removeDirection(robot.getOppositeDirection());
-			cout << "Node added" << endl;
+			cout << "----- Node added -----" << endl;
 			// NOTE: The opposite direction might already be removed in implementation for when passed to map.addNode
 			
 			if (nodeExists) {
@@ -190,9 +193,10 @@ int main() {
 		}
 
 		if (!removeLoop) {
-			cout << "Robot moved forward" << endl;
+			cout << "----- Robot moved forward -----" << endl;
 			robot.moveForward();
 			robot.availableDirections = sensor.getAvailableDirections(robot.location);
+			displayRobotState(robot);
 			// NOTE: line above is only meant for sim purposes
 		}
 

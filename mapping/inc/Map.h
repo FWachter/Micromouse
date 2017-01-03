@@ -6,13 +6,15 @@
 #ifndef __MAP__
 #define __MAP__
 
-#include "Edges.h"
-#include "Node.h"
 #include <vector>
 #include <stack>
 #include <memory>
 #include <map>
 #include <cmath>
+
+#include "Edges.h"
+#include "Node.h"
+#include "Utilities.h"
 using namespace std;
 
 #define MAP_RES 1

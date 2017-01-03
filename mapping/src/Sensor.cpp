@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "Sensor.h"
+#include "Utilities.h"
 using namespace std;
 
 // Alternate constructor(s)
@@ -53,6 +54,7 @@ bool Sensor::loadSensorFile(const string &fileName) {
 				east  = (stoi(line.substr(endBracket+5, 1)) != 0);
 				south = (stoi(line.substr(endBracket+7, 1)) != 0);
 				west  = (stoi(line.substr(endBracket+9, 1)) != 0);
+				displaySensorFileData(x, y, north, east, south, west);
 
 				location.setLocation(x, y);
 				obstacles.setObstacles(north, east, south, west);
