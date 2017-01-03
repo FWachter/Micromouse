@@ -3,7 +3,9 @@
  * Author: Frederick Wachter
  */
 
- #include <iostream>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 #include "Sensor.h"
 using namespace std;
@@ -41,7 +43,7 @@ bool Sensor::loadSensorFile(const string &fileName) {
 			bool north, east, south, west;
 			Location location;
 			Obstacles obstacles;
-			while (getline(sensorFile, line, ' ')) { // while there are still new lines in the file
+			while (getline(sensorFile, line)) { // while there are still new lines in the file
 				size_t firstSpace = line.find_first_of(" ");
 				size_t endBracket = line.find_first_of("]");
 
@@ -70,5 +72,5 @@ bool Sensor::loadSensorFile(const string &fileName) {
 
 // Get obstacles at specified location
 Obstacles Sensor::getAvailableDirections(const Location &location) {
-	return sensorMap.at(location);
+	return sensorMap[location];
 }

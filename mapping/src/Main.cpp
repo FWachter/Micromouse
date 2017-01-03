@@ -21,7 +21,7 @@ using namespace std;
 int main() {
 
 	// Get sensor file
-	string sensorFile = "Sensor_33x33_Map1.txt";
+	string sensorFile = "log/Sensor_33x33_Map1.txt";
 
 	// Initialize objects
 	Sensor sensor(sensorFile);
@@ -57,10 +57,11 @@ int main() {
 
 		int totalAvailableDirections = robot.getTotalAvailableDirections();
 		if (backTrack) { // if the robot is to backTrack
-			cout << "Backtracking" << endl;
+			cout << "Backtracking... ";
 			shared_ptr<Node> previousNode = map.getCurrentNode();
 
 			if (runQueue) { // if the robot is to run through the queue generated while trying to remove loops
+				cout << "running queue" << endl;
 				if (robot.location == nodeQueue.front()->location) {
 					nodeQueue.pop_front();
 					if (nodeQueue.empty()) {
@@ -78,16 +79,19 @@ int main() {
 					}
 				}
 			} else if (removeLoop) { // if the robot is to try to remove loops while backtracking
+				cout << "removing loops" << endl;
 				deque<shared_ptr<Node>> nodes;
 				stack<shared_ptr<Node>> innerLoops;
 				stack<int> innerLoopIndexes;
 
 				int nodesInLoop = (map.stackSize()+1) - map.getCurrentNode()->stackRef;
+				cout << "nodes in loop " << nodesInLoop << endl;
 				for (int i = 0; i < nodesInLoop; i++) {
 					shared_ptr<Node> node = map.getCurrentNode();
 					nodes.push_back(node);
 
 					if ((!innerLoops.empty()) && (node->location == innerLoops.top()->location)) { // if back at an inner loop start location
+						cout << "1" << endl;
 						for (int j = i; j > innerLoopIndexes.top(); j--) { // remove inner loop from deque
 							nodes.pop_back();
 						}
@@ -96,9 +100,11 @@ int main() {
 					}
 
 					if (node->stackRef != map.stackSize()) { // if the current location the robot is on has been added to the stack before the current instance
+						cout << "2" << endl;
 						innerLoopIndexes.push(i);
 						innerLoops.push(node);
 					} else {
+						cout << "3" << endl;
 						if (node->getTotalAvailableDirections() != 0) { // if there is another option to try in the potential loop
 							runQueue  = 1;
 							nodeQueue = nodes;
@@ -114,6 +120,7 @@ int main() {
 				}
 				removeLoop = 0;
 			} else if ((robot.location.x == previousNode->location.x) && (robot.location.y == previousNode->location.y)) { // if the robot is at the previous node location
+				cout << "pure backtrack" << endl;
 				totalAvailableDirections = previousNode->getTotalAvailableDirections();
 
 				if (totalAvailableDirections == 0) { // if there are no options for the robot to move
@@ -143,6 +150,8 @@ int main() {
 					}
 					previousNode->availableDirections.removeDirection(robot.direction);
 				}
+			} else {
+				cout << endl;
 			}
 		} else if (totalAvailableDirections == 1) { // if the robot hit a dead end
 			backTrack   = 1;

@@ -41,6 +41,10 @@ public:
 		this->x = rhs.x;
 		this->y = rhs.y;
 	}
+
+	bool operator < (const Location &rhs) const {
+        return ((x < rhs.x) || ((x == rhs.x) && (y < rhs.y)));
+    }
 };
 
 #endif

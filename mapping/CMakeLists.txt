@@ -12,8 +12,20 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_library(mapping src/Main.cpp src/Map.cpp src/Micromouse.cpp src/Sensor.cpp)
+
+target_link_libraries(mapping ${catkin_LIBRARIES})
+
+catkin_package(INCLUDE_DIRS inc
+               LIBRARIES mapping
+)
+
 add_executable(main src/Main.cpp)
-target_link_libraries(main ${catkin_LIBRARIES})
+target_link_libraries(main mapping ${catkin_LIBRARIES})
+
+install(DIRECTORY inc/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 # Check c++14
 # REFERENCE: http://stackoverflow.com/questions/37364217/ros-packages-with-c14-lambda-support
