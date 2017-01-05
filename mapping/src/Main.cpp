@@ -50,15 +50,14 @@ int main() {
 
 		if ((!goalFound) && (robot.isAtGoalLocation())) { // doesn't exist yet
 			displayGoalFound();
-			for (int i = 0; i < 5; i++) { // remove last five nodes from stack
+			for (int i = 0; i < 4; i++) { // remove last five nodes from stack
 				map.backTrack();
 			}
-			map.addNode(robot.location.x, robot.location.y, map.stackSize()+1, 0, 0, 0, true); // set current location as goal location
-			map.backTrack();
-
 			robot.setTravelDirection(map.getCurrentNode()->location);
+
 			goalFound   = 1;
 			backTrack   = 1;
+			removeLoop  = 0;
 			removeNodes = 0;
 		}
 

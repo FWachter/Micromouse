@@ -87,27 +87,43 @@ int Micromouse::getTotalAvailableDirections(void) {
 bool Micromouse::isAtGoalLocation(void) {
 	previousDirections.push_front(direction);
 	if (previousDirections.size() == MAX_DIRECTIONS) {
-		previousDirections.pop_back();
-		if (previousDirections[0] == previousDirections[1]) { // attempt to disqualify the robot being at the goal as early as possible
+		if (previousDirections[0] == previousDirections[1]) { // attempt to disqualify the robot being at the goal as early as possible	
+			previousDirections.pop_back();
 			return false;
 		}
 
-		int sum = 0;
-		for (int i = 0; i < (MAX_DIRECTIONS-1); i++) { // sum the previous four directions
-			sum += previousDirections[i];
-			if (previousDirections[i] == getOppositeDirection(previousDirections[i+1])) { // if the robot was backtracking
+		if (isPreviousDirectionsUnique()) { // if all previous directions are unique
+			int sum = 0;
+			for (int i = 0; i < (MAX_DIRECTIONS-1); i++) { // sum the previous four directions
+				sum += previousDirections[i];
+				if (previousDirections[i] == getOppositeDirection(previousDirections[i+1])) { // if the robot was backtracking
+					previousDirections.pop_back();
+					return false;
+				}
+			}
+			sum += previousDirections.back();
+			if (sum == SUM_OF_DIRECTIONS) { // if the previous four directions are unique and were not caused back a backtrack
+				return true;
+			}
+		}
+
+		previousDirections.pop_back();
+	}
+
+	return false;
+}
+
+// Check if the previous directions of the robot are all unique
+bool Micromouse::isPreviousDirectionsUnique(void) {
+	for (int i = 0; i < (MAX_DIRECTIONS-1); i++) {
+		for (int j = i+1; j < MAX_DIRECTIONS; j++) {
+			if (previousDirections[i] == previousDirections[j]) {
 				return false;
 			}
 		}
-		sum += previousDirections.back();
-		if (sum == SUM_OF_DIRECTIONS) { // if the previous four directions are unique and were not caused back a backtrack
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
 	}
+
+	return true;
 }
 
 // Move the robot forward

@@ -6,7 +6,7 @@
 #include "Utilities.h"
 using namespace std;
 
-static bool debug = true;
+static bool debug = false;
 
 void displayNodeInformation(const int &x, const int &y, const int &stackRef,
 	const bool &north, const bool &east, const bool &south, const bool &west) {

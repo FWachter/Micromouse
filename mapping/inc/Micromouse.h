@@ -49,6 +49,8 @@ public:
 
 	bool isAtGoalLocation(void); // check if robot is at the goal location
 
+	bool isPreviousDirectionsUnique(void); // check if the previous directions of the robot are unique
+
 	void moveForward(void); // move the robot forward (NOT USED DIRECTLY IN IMPLEMENTATION)
 
 	int reverseDirection(void); // set robot direction to opposite direction of the robot direction
@@ -57,7 +59,7 @@ public:
 
 private:
 	const int MAX_DIRECTIONS    = 4;
-	const int SUM_OF_DIRECTIONS = 10;
+	const int SUM_OF_DIRECTIONS = 6;
 	const string TRAVEL_DIRECTION_GOAL_ERROR = "Goal location is not valid";
 };
 
