@@ -49,6 +49,7 @@ int main() {
 	while (true) {
 
 		if ((!goalFound) && (robot.isAtGoalLocation())) { // doesn't exist yet
+			displayGoalFound();
 			for (int i = 0; i < 5; i++) { // remove last five nodes from stack
 				map.backTrack();
 			}
@@ -139,7 +140,7 @@ int main() {
 					}
 
 					if (robot.location == robot.startLocation) { // if the robot arrived back to the start location
-						displaySolutionFound(robot.totalMovements);
+						displayAlgorithmFinished(goalFound, robot.totalMovements);
 						break;
 					}
 

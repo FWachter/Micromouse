@@ -48,7 +48,9 @@ void displayBacktrack(void);
 
 void displayDeadEnd(void);
 
-void displaySolutionFound(const int &totalMovements);
+void displayGoalFound(void);
+
+void displayAlgorithmFinished(const bool solutionFound, const int &totalMovements);
 
 void displayBeginningAlgorithm(void);
 

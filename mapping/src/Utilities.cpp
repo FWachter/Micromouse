@@ -6,7 +6,7 @@
 #include "Utilities.h"
 using namespace std;
 
-static bool debug = false;
+static bool debug = true;
 
 void displayNodeInformation(const int &x, const int &y, const int &stackRef,
 	const bool &north, const bool &east, const bool &south, const bool &west) {
@@ -136,8 +136,16 @@ void displayDeadEnd(void) {
 	}
 }
 
-void displaySolutionFound(const int &totalMovements) {
-	cout << "[INFO] Solution found! Took " << totalMovements << " movements" << endl;
+void displayGoalFound(void) {
+	cout << "[INFO] Goal position found, backtracking to remaining open spaces" << endl;
+}
+
+void displayAlgorithmFinished(const bool solutionFound, const int &totalMovements) {
+	if (solutionFound) {
+		cout << "[INFO] Algorithm finished! Took " << totalMovements << " movements" << endl;
+	} else {
+		cout << "[INFO] Algorithm finished, but the solution was not found" << endl;
+	}
 }
 
 void displayBeginningAlgorithm(void) {
