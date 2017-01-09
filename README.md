@@ -30,3 +30,4 @@ Buying components, full/sub system integration, and full/sub system testing.
 
 ## MATLAB Mapping Phase Simulation Video
 [![Mapping Phase Simulation](https://img.youtube.com/vi/W23ovwPaJdQ/0.jpg)]
+(https://www.youtube.com/watch?v=W23ovwPaJdQ&feature=youtu.be)
