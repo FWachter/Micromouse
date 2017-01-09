@@ -814,7 +814,7 @@ classdef simulator < handle
                         end
                     elseif (x ~= (robotLocation(1)-2))
                         lineDisplayed = 0;
-                        if (y > robotLocation(1))
+                        if (y > robotLocation(2))
                             if (map(x, y-1) == legend.obstacle)
                                 if (~lineAlreadyDisplayed(x, y-0.5, displayedLines))
                                     line([x, x], [y-1, y], 'Color', 'r');
