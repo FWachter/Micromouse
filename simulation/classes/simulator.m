@@ -199,25 +199,25 @@ classdef simulator < handle
                     if (sim.display.initialRobotLocation(1) == sim.map.maxX)
                         initialRightWallOpen = 0;
                     else
-                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)+1, sim.display.initialRobotLocation(2)) == sim.map.legend.freeSpace);
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)+1, sim.display.initialRobotLocation(2)) ~= sim.robot.legend.obstacle);
                     end
                 elseif (initialDirection == 2)
                     if (sim.display.initialRobotLocation(2) == 1)
                         initialRightWallOpen = 0;
                     else
-                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)-1) == sim.map.legend.freeSpace);
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)-1) ~= sim.robot.legend.obstacle);
                     end
                 elseif (initialDirection == 3)
                     if (sim.display.initialRobotLocation(1) == 1)
                         initialRightWallOpen = 0;
                     else
-                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)-1, sim.display.initialRobotLocation(2)) == sim.map.legend.freeSpace);
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1)-1, sim.display.initialRobotLocation(2)) ~= sim.robot.legend.obstacle);
                     end
                 else
                     if (sim.display.initialRobotLocation(2) == sim.map.maxY)
                         initialRightWallOpen = 0;
                     else
-                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)+1) == sim.map.legend.freeSpace);
+                        initialRightWallOpen = (sim.map.coordinates(sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)+1) ~= sim.robot.legend.obstacle);
                     end
                 end
 
@@ -225,7 +225,7 @@ classdef simulator < handle
                 fprintf(fileID, '[%d] [%d] [%d %d]\n', initialDirection-1, initialRightWallOpen, sim.display.initialRobotLocation(1), sim.display.initialRobotLocation(2)); % in C++, directions start with 0 not 1 as in MATLAB
                 for x = 1:sim.map.maxX
                     for y = 1:sim.map.maxY
-                        if ((sim.map.coordinates(x, y) == sim.robot.legend.freeSpace) || (sim.map.coordinates(x, y) == sim.robot.legend.start) || (sim.map.coordinates(x, y) == sim.robot.legend.target))
+                        if (sim.map.coordinates(x, y) ~= sim.robot.legend.obstacle)
                             directions = zeros(1, 4);
                             if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) ~= sim.robot.legend.obstacle)); directions(1) = 1; end
                             if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) ~= sim.robot.legend.obstacle)); directions(2) = 1; end
