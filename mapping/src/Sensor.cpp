@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "Sensor.h"
+#include "Utilities.h"
 using namespace std;
 
 // Alternate constructor(s)
@@ -30,6 +31,7 @@ bool Sensor::loadSensorFile(const string &fileName) {
 			}
 
 			// Get robot state location information
+			displaySensorFileStart();
 			getline(sensorFile, line);
 			size_t lastSpace       = line.find_last_of(" ");
 			size_t lastOpenBracket = line.find_last_of("[");
@@ -41,11 +43,11 @@ bool Sensor::loadSensorFile(const string &fileName) {
 			// Get map information
 			int x, y;
 			bool north, east, south, west;
-			Location location;
+			size_t firstSpace, endBracket;
 			Obstacles obstacles;
 			while (getline(sensorFile, line)) { // while there are still new lines in the file
-				size_t firstSpace = line.find_first_of(" ");
-				size_t endBracket = line.find_first_of("]");
+				firstSpace = line.find_first_of(" ");
+				endBracket = line.find_first_of("]");
 
 				x = stoi(line.substr(1, firstSpace-1));
 				y = stoi(line.substr(firstSpace+1, endBracket-firstSpace-1));
@@ -53,11 +55,12 @@ bool Sensor::loadSensorFile(const string &fileName) {
 				east  = (stoi(line.substr(endBracket+5, 1)) != 0);
 				south = (stoi(line.substr(endBracket+7, 1)) != 0);
 				west  = (stoi(line.substr(endBracket+9, 1)) != 0);
+				displaySensorFileData(x, y, north, east, south, west);
 
-				location.setLocation(x, y);
-				obstacles.setObstacles(north, east, south, west);
-				sensorMap.insert(pair<Location, Obstacles>(location, obstacles));
+				sensorMap.insert(pair<Location, int>(Location(x, y), 
+					convertObstaclesToInt(Obstacles(north, east, south, west))));
 			}
+			displaySensorFileEnd();
 		} else {
 			cout << emptyFile << endl;
 			return false;
@@ -70,7 +73,24 @@ bool Sensor::loadSensorFile(const string &fileName) {
 	return true;
 }
 
+// Convert Obstacles object to an interger
+int Sensor::convertObstaclesToInt(const Obstacles &obstacles) {
+	return ((obstacles.isAvailable(0)*1000) + (obstacles.isAvailable(1)*100) +
+		(obstacles.isAvailable(2)*10) + obstacles.isAvailable(3));
+}
+
+// Convert an integer to an Obstacle object
+Obstacles Sensor::convertIntToObstacles(int &obstacle) {
+	bool north = 0, east = 0, south = 0, west = 0;
+	if (obstacle >= 1000) { north = 1; obstacle -= 1000; }
+	if (obstacle >= 100) { east = 1; obstacle -= 100; }
+	if (obstacle >= 10) { south = 1; obstacle -= 10; }
+	if (obstacle == 1) { west = 1; }
+	return Obstacles(north, east, south, west);
+}
+
 // Get obstacles at specified location
 Obstacles Sensor::getAvailableDirections(const Location &location) {
-	return sensorMap[location];
+	int obstacle = sensorMap[location];
+	return convertIntToObstacles(obstacle);
 }

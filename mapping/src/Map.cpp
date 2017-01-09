@@ -3,9 +3,6 @@
  * Author: Alexander Nhan
  */
 
-#include "Map.h"
-#include "Edges.h"
-#include "Node.h"
 #include <memory>
 #include <float.h>
 #include <utility>
@@ -14,6 +11,10 @@
 #include <stack>
 #include <algorithm>
 #include <cmath>
+
+#include "Edges.h"
+#include "Map.h"
+#include "Node.h"
 using namespace std;
 
 // Constructor
@@ -67,10 +68,11 @@ bool Map::addNode(const double x, const double y, const int stackSize, const boo
 		_vt.insert(pair<unsigned int, vector<shared_ptr<Node> > >(
 			_hash(x,y), vector<shared_ptr<Node> >()));
 		shared_ptr<Node> newNode =
-			make_shared<Node>(x,y,stackSize, north,west,south,east);
+			make_shared<Node>(x,y,stackSize,north,west,south,east);
 		_vt.at(_hash(x,y)).push_back(newNode);
 		_vertices.push_back(newNode);
 		addNode(newNode, goal);
+		displayNodeInformation(newNode);
 		return false;
 	}
 	else {
@@ -87,6 +89,7 @@ bool Map::addNode(const double x, const double y, const int stackSize, const boo
 			vec.push_back(newNode);
 			_vertices.push_back(newNode);
 			addNode(newNode, goal);
+			displayNodeInformation(newNode);
 			return false;
 		}
 		else { // Node already existed

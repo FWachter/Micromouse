@@ -12,8 +12,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(mapping src/Main.cpp src/Map.cpp src/Micromouse.cpp src/Sensor.cpp)
-
+add_library(mapping src/Main.cpp src/Map.cpp src/Micromouse.cpp src/Sensor.cpp src/Utilities.cpp)
 target_link_libraries(mapping ${catkin_LIBRARIES})
 
 catkin_package(INCLUDE_DIRS inc

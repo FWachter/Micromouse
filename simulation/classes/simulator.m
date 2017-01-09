@@ -190,7 +190,7 @@ classdef simulator < handle
                 % Write File Header
                 fprintf(fileID, 'Exported open square available locations from map\n\n');
                 fprintf(fileID, '_____ Legend _____\n');
-                fprintf(fileID, '[initial robot direction] [initial right wall open]\n');
+                fprintf(fileID, '[initial robot direction] [initial right wall open] [initial robot location]\n');
                 fprintf(fileID, '[location] [available directions]\n\n-----\n\n');
 
                 % Get Rqeuired Data
@@ -227,10 +227,10 @@ classdef simulator < handle
                     for y = 1:sim.map.maxY
                         if ((sim.map.coordinates(x, y) == sim.robot.legend.freeSpace) || (sim.map.coordinates(x, y) == sim.robot.legend.start) || (sim.map.coordinates(x, y) == sim.robot.legend.target))
                             directions = zeros(1, 4);
-                            if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) == sim.robot.legend.freeSpace)); directions(1) = 1; end
-                            if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) == sim.robot.legend.freeSpace)); directions(2) = 1; end
-                            if ((y > 1) && (sim.map.coordinates(x, y-1) == sim.robot.legend.freeSpace)); directions(3) = 1; end
-                            if ((x > 1) && (sim.map.coordinates(x-1, y) == sim.robot.legend.freeSpace)); directions(4) = 1; end
+                            if ((y < sim.map.maxY) && (sim.map.coordinates(x, y+1) ~= sim.robot.legend.obstacle)); directions(1) = 1; end
+                            if ((x < sim.map.maxX) && (sim.map.coordinates(x+1, y) ~= sim.robot.legend.obstacle)); directions(2) = 1; end
+                            if ((y > 1) && (sim.map.coordinates(x, y-1) ~= sim.robot.legend.obstacle)); directions(3) = 1; end
+                            if ((x > 1) && (sim.map.coordinates(x-1, y) ~= sim.robot.legend.obstacle)); directions(4) = 1; end
 
                             fprintf(fileID, '[%d %d] [%d %d %d %d]\n', x, y, directions(1), directions(2), directions(3), directions(4));
                         end

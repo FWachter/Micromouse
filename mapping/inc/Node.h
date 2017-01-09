@@ -11,7 +11,7 @@
 
 class Node {
 public:
-	Node(double x, double y, int stackref, bool north=false, bool east=false, 
+	Node(double x, double y, int stackRef, bool north=false, bool east=false, 
 		bool south=false, bool west=false) {
 		this->location.x = x;
 		this->location.y = y;
