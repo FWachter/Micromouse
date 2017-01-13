@@ -1,5 +1,5 @@
 /*
- * Header file providing class for obstacles
+ * Header file providing class for directions
  * Author: Frederick Wachter
  */
 
@@ -10,15 +10,15 @@
 #include <iostream>
 using namespace std;
 
-class Obstacles {
+class Directions {
 public:
 	bool *directions[4] = { &north, &east, &south, &west };
 
 	// Defualt constructor
-	Obstacles() {}
+	Directions() {}
 
 	// Alternate constructor(s)
-	Obstacles(const bool north, const bool east, const bool south, const bool west) { // 0 - obstacle, 1 - free space
+	Directions(const bool north, const bool east, const bool south, const bool west) { // 0 - obstacle, 1 - free space
 		this->north = north;
 		this->east  = east;
 		this->south = south;
@@ -26,7 +26,7 @@ public:
 	}
 
 	// Member function
-	void setObstacles(const bool north, const bool east, const bool south, const bool west) {
+	void setDirections(const bool north, const bool east, const bool south, const bool west) {
 		this->north = north;
 		this->east  = east;
 		this->south = south;
@@ -42,11 +42,11 @@ public:
 	}
 
 	// Operator overloads
-	void operator = (const Obstacles &rhs) {
-		this->setObstacles(*rhs.directions[0], *rhs.directions[1], *rhs.directions[2], *rhs.directions[3]);
+	void operator = (const Directions &rhs) {
+		this->setDirections(*rhs.directions[0], *rhs.directions[1], *rhs.directions[2], *rhs.directions[3]);
 	}
 
-	friend ostream& operator << (ostream& os, const Obstacles &rhs) {
+	friend ostream& operator << (ostream& os, const Directions &rhs) {
 		os << "[" << rhs.isAvailable(0) << " " << rhs.isAvailable(1) << " " << rhs.isAvailable(2) <<
 			" " << rhs.isAvailable(3) << "]";
 		return os;

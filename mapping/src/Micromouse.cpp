@@ -28,14 +28,14 @@ Micromouse::Micromouse(const Location &location) {
 	this->startLocation = location;
 }
 
-// Alternate constructor supplying Location and Obstacles objects
-Micromouse::Micromouse(const Location &location, const int &direction, const Obstacles &obstacles) {
+// Alternate constructor supplying Location and Directions objects
+Micromouse::Micromouse(const Location &location, const int &direction, const Directions &directions) {
 	this->location  = location;
 	this->direction = direction;
-	this->availableDirections = obstacles;
+	this->availableDirections = directions;
 	this->startLocation = location;
 
-	displayRobotState(location, direction, obstacles);
+	displayRobotState(location, direction, directions);
 }
 
 // Choose the only direction that is open

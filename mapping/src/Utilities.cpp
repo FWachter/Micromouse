@@ -21,15 +21,15 @@ void displayNodeInformation(const int &x, const int &y, const int &stackRef,
 }
 
 void displayNodeInformation(const Location &location, const int &stackRef, 
-	const Obstacles &obstacles) {
+	const Directions &directions) {
 	if (debug) {
 		cout << "[ACTION] Node added" << endl;
 		cout << "__________ NODE INFORMATION __________" << endl;
 		cout << "Location: [" << location.x << " " << location.y << "]" << endl;
 		cout << "Stack Reference: " << stackRef << endl;
-		cout << "Available Directions: [" << obstacles.isAvailable(0) << " " << 
-			obstacles.isAvailable(1) << " " << obstacles.isAvailable(2) << " " << 
-			obstacles.isAvailable(3) << "]" << endl << endl;
+		cout << "Available Directions: [" << directions.isAvailable(0) << " " << 
+			directions.isAvailable(1) << " " << directions.isAvailable(2) << " " << 
+			directions.isAvailable(3) << "]" << endl << endl;
 	}
 }
 
@@ -55,14 +55,14 @@ void displayRobotLocation(const Location &location, const int &direction) {
 }
 
 void displayRobotState(const Location &location, const int &direction, 
-	const Obstacles &obstacles) {
+	const Directions &directions) {
 	if (debug) {
 		cout << "__________ ROBOT STATE __________" << endl;
 		cout << "Location: [" << location.x << " " << location.y << "]" << endl;
 		cout << "Direction: " << direction << endl;
-		cout << "Available Directions: [" << obstacles.isAvailable(0) << " " << 
-			obstacles.isAvailable(1) << " " << obstacles.isAvailable(2) << " " << 
-			obstacles.isAvailable(3) << "]" << endl << endl;
+		cout << "Available Directions: [" << directions.isAvailable(0) << " " << 
+			directions.isAvailable(1) << " " << directions.isAvailable(2) << " " << 
+			directions.isAvailable(3) << "]" << endl << endl;
 	}
 }
 

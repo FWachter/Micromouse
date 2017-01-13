@@ -7,7 +7,7 @@
 #define __NODE__
 
 #include "Location.h"
-#include "Obstacles.h"
+#include "Directions.h"
 
 class Node {
 public:
@@ -16,7 +16,7 @@ public:
 		this->location.x = x;
 		this->location.y = y;
 		this->stackRef = stackRef;
-		this->availableDirections.setObstacles(north, east, south, west);
+		this->availableDirections.setDirections(north, east, south, west);
 	};
 
 	int getTotalAvailableDirections(void) {
@@ -35,7 +35,7 @@ public:
 	// availableDirections.isAvailable(1): 1 if East is available, 0 else
 	// availableDirections.isAvailable(2): 1 if South is available, 0 else
 	// availableDirections.isAvailable(3): 1 if West is available, 0 else
-	Obstacles availableDirections;
+	Directions availableDirections;
 
 private:
 	const int MAX_DIRECTIONS = 4;

@@ -44,7 +44,7 @@ bool Sensor::loadSensorFile(const string &fileName) {
 			int x, y;
 			bool north, east, south, west;
 			size_t firstSpace, endBracket;
-			Obstacles obstacles;
+			Directions directions;
 			while (getline(sensorFile, line)) { // while there are still new lines in the file
 				firstSpace = line.find_first_of(" ");
 				endBracket = line.find_first_of("]");
@@ -58,7 +58,7 @@ bool Sensor::loadSensorFile(const string &fileName) {
 				displaySensorFileData(x, y, north, east, south, west);
 
 				sensorMap.insert(pair<Location, int>(Location(x, y), 
-					convertObstaclesToInt(Obstacles(north, east, south, west))));
+					convertDirectionsToInt(Directions(north, east, south, west))));
 			}
 			displaySensorFileEnd();
 		} else {
@@ -73,24 +73,24 @@ bool Sensor::loadSensorFile(const string &fileName) {
 	return true;
 }
 
-// Convert Obstacles object to an interger
-int Sensor::convertObstaclesToInt(const Obstacles &obstacles) {
-	return ((obstacles.isAvailable(0)*1000) + (obstacles.isAvailable(1)*100) +
-		(obstacles.isAvailable(2)*10) + obstacles.isAvailable(3));
+// Convert Directions object to an interger
+int Sensor::convertDirectionsToInt(const Directions &directions) {
+	return ((directions.isAvailable(0)*1000) + (directions.isAvailable(1)*100) +
+		(directions.isAvailable(2)*10) + directions.isAvailable(3));
 }
 
 // Convert an integer to an Obstacle object
-Obstacles Sensor::convertIntToObstacles(int &obstacle) {
+Directions Sensor::convertIntToDirections(int &obstacle) {
 	bool north = 0, east = 0, south = 0, west = 0;
 	if (obstacle >= 1000) { north = 1; obstacle -= 1000; }
 	if (obstacle >= 100) { east = 1; obstacle -= 100; }
 	if (obstacle >= 10) { south = 1; obstacle -= 10; }
 	if (obstacle == 1) { west = 1; }
-	return Obstacles(north, east, south, west);
+	return Directions(north, east, south, west);
 }
 
-// Get obstacles at specified location
-Obstacles Sensor::getAvailableDirections(const Location &location) {
+// Get directions at specified location
+Directions Sensor::getAvailableDirections(const Location &location) {
 	int obstacle = sensorMap[location];
-	return convertIntToObstacles(obstacle);
+	return convertIntToDirections(obstacle);
 }
