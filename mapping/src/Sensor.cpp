@@ -80,7 +80,7 @@ int Sensor::convertDirectionsToInt(const Directions &directions) {
 }
 
 // Convert an integer to an Obstacle object
-Directions Sensor::convertIntToDirections(int &obstacle) {
+Directions Sensor::convertIntToDirections(int obstacle) {
 	bool north = 0, east = 0, south = 0, west = 0;
 	if (obstacle >= 1000) { north = 1; obstacle -= 1000; }
 	if (obstacle >= 100) { east = 1; obstacle -= 100; }

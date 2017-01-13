@@ -33,7 +33,7 @@ public:
 	int convertDirectionsToInt(const Directions &directions);
 
 	// Convert an integer to an Obstacle object
-	Directions convertIntToDirections(int &directions);
+	Directions convertIntToDirections(int directions);
 
 	// Get the Directions object from a specified location
 	Directions getAvailableDirections(const Location &location);
