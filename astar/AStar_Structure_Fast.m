@@ -253,7 +253,7 @@ classdef AStar_Structure_Fast < handle
             astar.display.figureHandle = figure('Name','A* Algorithm','NumberTitle','off'); % initialize figure
             axis([1,astar.map.MAX_X+1,1,astar.map.MAX_Y+1]); % initialize axis spacing
             axis square; grid on; hold on; % set axis properties
-            title('Path Palnner Solution');
+            title('Path Planner Solution');
             astar.state.figureDisplayed = 1;
             
             % Display obstacles, robot, and target location
