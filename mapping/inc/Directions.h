@@ -12,10 +12,15 @@ using namespace std;
 
 class Directions {
 public:
-	bool *directions[4] = { &north, &east, &south, &west };
+	bool *directions[4];
 
 	// Defualt constructor
-	Directions() {}
+	Directions(void) {
+		this->directions[0] = &this->north;
+		this->directions[1] = &this->east;
+		this->directions[2] = &this->south;
+		this->directions[3] = &this->west;
+	}
 
 	// Alternate constructor(s)
 	Directions(const bool north, const bool east, const bool south, const bool west) { // 0 - obstacle, 1 - free space
@@ -23,6 +28,10 @@ public:
 		this->east  = east;
 		this->south = south;
 		this->west  = west;
+		this->directions[0] = &this->north;
+		this->directions[1] = &this->east;
+		this->directions[2] = &this->south;
+		this->directions[3] = &this->west;
 	}
 
 	// Member function
