@@ -30,6 +30,11 @@
 %   ASTAR_STRUCTURE_FAST.displayOptimizedSolution
 %   displays the polynomial interpolated solution on the figure.
 %
+%   ASTAR_STRUCTURE_FAST.displayDirectionField
+%   displays the movements of the robot as a 3D bar graph where the 1
+%   represents movement in the positive y direction, 2 for positive x, 3
+%   for negative y, and 4 for negative x.
+%
 %   ASTAR_STRUCTURE_FAST.removeSolution
 %   removes the displayed solution path from the figure if it is
 %   displaying.
@@ -56,11 +61,10 @@
 %   https://github.com/FWachter/Micromouse/wiki/MATLAB
 
 %% ---- PROGRAM INFORMAITON ----
-% PROGRAMMER: Frederick Wachter
+% PROGRAMMER: Frederick Wachter - wachterfreddy@gmail.com
 % DATE CREATED: 2016-06-01
 % PURPOSE: AStar algorithm class
 % REFERENCE: http://ch.mathworks.com/matlabcentral/fileexchange/26248-a---a-star--search-for-path-planning-tutorial
-% CONTACT INFO: wachterfreddy@gmail.com
 
 % Please refer to the Wiki for instructions on how to use this script
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
@@ -134,7 +138,7 @@ classdef AStar_Structure_Fast < handle
             astar.planner.time.smoothPath     = 0;
             astar.planner.time.directionField = 0;
             
-            astar.planner.properties.polynomialOrder = 3;
+            astar.planner.properties.polynomialOrder = 4;
             
             % Alogrithm State Properties
             astar.state.time            = [];
@@ -249,6 +253,7 @@ classdef AStar_Structure_Fast < handle
             astar.display.figureHandle = figure('Name','A* Algorithm','NumberTitle','off'); % initialize figure
             axis([1,astar.map.MAX_X+1,1,astar.map.MAX_Y+1]); % initialize axis spacing
             axis square; grid on; hold on; % set axis properties
+            title('Path Planner Solution');
             astar.state.figureDisplayed = 1;
             
             % Display obstacles, robot, and target location
@@ -469,7 +474,12 @@ classdef AStar_Structure_Fast < handle
             
             % Display the 3D bar plot of direction field
             astar.display.handles.directionField = figure('Name','Direction Field for Solution Path','NumberTitle','off'); % initialize figure
-            bar3(astar.planner.directionField);
+            barHandle = bar3(astar.planner.directionField);
+            for bar = 1:length(barHandle)
+                zdata = barHandle(bar).ZData;
+                barHandle(bar).CData = zdata;
+                barHandle(bar).FaceColor = 'interp';
+            end
  
         end
         

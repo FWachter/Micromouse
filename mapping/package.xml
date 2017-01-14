@@ -1,0 +1,21 @@
+<package format="2">
+
+  <name>mapping</name>
+  <version>0.2.0</version>
+  <description>
+     Micromouse repository
+  </description>
+  <author email="wachterfreddy@gmail.com">Frederick Wachter</author>
+  <maintainer email="wachterfreddy@gmail.com">Frederick Wachter</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">https://github.com/FWachter/Micromouse</url>
+  <url type="bugtracker"></url>
+  <url type="repository">https://github.com/FWachter/Micromouse</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <depend>roscpp</depend>
+  
+</package>
