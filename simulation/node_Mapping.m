@@ -6,8 +6,8 @@
 % Please refer to the Wiki for instructions on how to use this class
 % GITHUB WIKI: https://github.com/FWachter/Micromouse/wiki/MATLAB
 
-% ISSUE: Dubplicate nodes are still being made for map3
-% Optimize pure backtrack movements (probably need subset search)
+% FUTURE WORK: Dubplicate nodes are still being made for map3
+%              Optimize pure backtrack movements (probably need subset search)
 
 %% Prepare Simulation
 
@@ -20,6 +20,7 @@ robot = micromouse;
 
 % Load Map Into Simulation
 displaySimulation = 1;
+displayResults    = 1;
 load('maps/33x33/orthogonal/map1.mat');
 sim.getMap(map, displaySimulation);
 
@@ -221,7 +222,7 @@ end
 if (backToStart)
     fprintf('Traveled %d movements to search maze\n', sim.robot.movements);
     
-    if (displaySimulation)
+    if (displayResults)
         astar = AStar_Structure_Fast;
         astar.runMap(sim.robot.map, map.criteria);
         astar.removeSolution();

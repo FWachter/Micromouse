@@ -486,7 +486,7 @@ classdef simulator < handle
         end
         
         function obstacles = getLineOfSight(sim)
-        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % EXAMPLE FUNCTION CALL: sim.updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Gets the list of obstacles the robot can see from its position
@@ -608,7 +608,7 @@ classdef simulator < handle
         end
         
         function updateLineOfSight(sim)
-        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % EXAMPLE FUNCTION CALL: sim.updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Updates line of sight of robot
@@ -621,7 +621,7 @@ classdef simulator < handle
         end
         
         function addObstacles(sim, obstacles)
-        % EXAMPLE FUNCTION CALL: updateLineOfSight()
+        % EXAMPLE FUNCTION CALL: sim.updateLineOfSight()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-11
         % PURPOSE: Check if provided obstacles already exist in the map and display them if not
@@ -660,7 +660,7 @@ classdef simulator < handle
             drawnow;
             
             function [displayLine] = displayObstacle(map, x, y, robotLocation, robotDirection, legend, displayedLines, displayObstacleDot)
-            % EXAMPLE FUNCTION CALL: displayObstacle(sim.map.coordinates, x, y, sim.robot.location, sim.robot.direction, sim.map.legends, 1)
+            % EXAMPLE FUNCTION CALL: sim.displayObstacle(sim.map.coordinates, x, y, sim.robot.location, sim.robot.direction, sim.map.legends, 1)
             % PROGRAMMER: Frederick Wachter
             % DATE CREATED: 2016-10-11
             % PURPOSE: Displays lines between neighboring obstacles using line of sight of the robot
@@ -874,12 +874,12 @@ classdef simulator < handle
         % Display Functions
         
         function initializeFigure(sim)
-        % EXAMPLE FUNCTION CALL: initializeFigure()
+        % EXAMPLE FUNCTION CALL: sim.initializeFigure()
         % PROGRAMMER: Frederick Wachter
         % DATE CREATED: 2016-10-12
         % PURPOSE: Initialize figure for displaying maps
             
-            sim.display.figureHandle = figure('Name', 'A* Algorithm', 'NumberTitle', 'off'); % initialize figure
+            sim.display.figureHandle = figure('Name', 'Micromouse Simulator', 'NumberTitle', 'off'); % initialize figure
             figurePosition = get(sim.display.figureHandle, 'Position');
             set(sim.display.figureHandle, 'Position', [figurePosition(1:2), figurePosition(3)*1.5, figurePosition(4)]);
             
