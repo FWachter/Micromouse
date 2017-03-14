@@ -32,8 +32,9 @@ public:
 
 	// Adds a node, specified by (x, y) point to the map. Returns true if
 	// node is a duplicate, otherwise false
-	bool addNode(const double x, const double y, const int stackSize, const bool north, const
-		bool east, const bool south, const bool west, const bool goal=0);
+	bool addNode(const double x, const double y, const int stackSize, 
+		const bool north, const bool east, const bool south, const bool west, 
+		const bool goal=0);
 	
 	// Backtrack by popping off the stack
 	void backTrack(void);
@@ -41,8 +42,7 @@ public:
 	// Returns the size of the stack of nodes
 	int stackSize(void);
 
-	// Notifies the Map that the current node results in a dead end
-	// This will cause the nodes reachable from this point to be deleted
+	// Remove node and all edges attached to the node
 	void removeNode(const double x, const double y);
 	void removeNode(shared_ptr<Node>& n);
 

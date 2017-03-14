@@ -8,8 +8,8 @@ using namespace std;
 
 static bool debug = false;
 
-void displayNodeInformation(const int &x, const int &y, const int &stackRef,
-	const bool &north, const bool &east, const bool &south, const bool &west) {
+void displayNodeInformation(const int x, const int y, const int stackRef,
+	const bool north, const bool east, const bool south, const bool west) {
 	if (debug) {
 		cout << "[ACTION] Node added" << endl;
 		cout << "__________ NODE INFORMATION __________" << endl;
@@ -20,16 +20,16 @@ void displayNodeInformation(const int &x, const int &y, const int &stackRef,
 	}
 }
 
-void displayNodeInformation(const Location &location, const int &stackRef, 
-	const Obstacles &obstacles) {
+void displayNodeInformation(const Location &location, const int stackRef, 
+	const Directions &directions) {
 	if (debug) {
 		cout << "[ACTION] Node added" << endl;
 		cout << "__________ NODE INFORMATION __________" << endl;
 		cout << "Location: [" << location.x << " " << location.y << "]" << endl;
 		cout << "Stack Reference: " << stackRef << endl;
-		cout << "Available Directions: [" << obstacles.isAvailable(0) << " " << 
-			obstacles.isAvailable(1) << " " << obstacles.isAvailable(2) << " " << 
-			obstacles.isAvailable(3) << "]" << endl << endl;
+		cout << "Available Directions: [" << directions.isAvailable(0) << " " << 
+			directions.isAvailable(1) << " " << directions.isAvailable(2) << " " << 
+			directions.isAvailable(3) << "]" << endl << endl;
 	}
 }
 
@@ -46,7 +46,7 @@ void displayNodeInformation(shared_ptr<Node> &n) {
 	}
 }
 
-void displayRobotLocation(const Location &location, const int &direction) {
+void displayRobotLocation(const Location &location, const int direction) {
 	if (debug) {
 		cout << "__________ ROBOT LOCATION __________" << endl;
 		cout << "Location: [" << location.x << " " << location.y << "]" << endl;
@@ -54,15 +54,15 @@ void displayRobotLocation(const Location &location, const int &direction) {
 	}
 }
 
-void displayRobotState(const Location &location, const int &direction, 
-	const Obstacles &obstacles) {
+void displayRobotState(const Location &location, const int direction, 
+	const Directions &directions) {
 	if (debug) {
 		cout << "__________ ROBOT STATE __________" << endl;
 		cout << "Location: [" << location.x << " " << location.y << "]" << endl;
 		cout << "Direction: " << direction << endl;
-		cout << "Available Directions: [" << obstacles.isAvailable(0) << " " << 
-			obstacles.isAvailable(1) << " " << obstacles.isAvailable(2) << " " << 
-			obstacles.isAvailable(3) << "]" << endl << endl;
+		cout << "Available Directions: [" << directions.isAvailable(0) << " " << 
+			directions.isAvailable(1) << " " << directions.isAvailable(2) << " " << 
+			directions.isAvailable(3) << "]" << endl << endl;
 	}
 }
 
@@ -91,8 +91,8 @@ void displaySensorFileEnd(void) {
 	}
 }
 
-void displaySensorFileData(const int &x, const int &y, const bool &north,
-	const bool &east, const bool &south, const bool &west) {
+void displaySensorFileData(const int x, const int y, const bool north,
+	const bool east, const bool south, const bool west) {
 	if (debug) {
 		cout << "Sensor File Line: [" << x << " " << y << "] [" << north << " " << east <<
 			" " << south << " " << west << "]" << endl;
@@ -105,7 +105,7 @@ void displayRobotMovement(void) {
 	}
 }
 
-void displayBacktrackRemoveLoops(const int &nodesInLoop) {
+void displayBacktrackRemoveLoops(const int nodesInLoop) {
 	if (debug) {
 		cout << "[INFO] Backtracking, attempting to remove loops (" << nodesInLoop << 
 			" nodes in loop)" << endl;
@@ -140,7 +140,7 @@ void displayGoalFound(void) {
 	cout << "[INFO] Goal position found, backtracking to remaining open spaces" << endl;
 }
 
-void displayAlgorithmFinished(const bool solutionFound, const int &totalMovements) {
+void displayAlgorithmFinished(const bool solutionFound, const int totalMovements) {
 	if (solutionFound) {
 		cout << "[INFO] Algorithm finished! Took " << totalMovements << " movements" << endl;
 	} else {

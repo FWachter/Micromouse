@@ -13,14 +13,14 @@
 
 #include "Location.h"
 #include "Node.h"
-#include "Obstacles.h"
+#include "Directions.h"
 using namespace std;
 
 class Micromouse {
 public:
 	int direction = 0; // 0 is North, 1 is East, 2 is South, and 4 is West
 	Location location;
-	Obstacles availableDirections;
+	Directions availableDirections;
 
 	int totalMovements = 0;
 	Location startLocation;
@@ -30,11 +30,11 @@ public:
 	Micromouse();
 
 	// Alternate constructor(s)
-	Micromouse(const int &x, const int &y);
+	Micromouse(const int x, const int y);
 
 	Micromouse(const Location &location);
 
-	Micromouse(const Location &location, const int &direction, const Obstacles &obstacles);
+	Micromouse(const Location &location, const int direction, const Directions &directions);
 
 	// Member function(s)
 	int chooseOpenDirection(void); // choose the only direction that is open
@@ -43,7 +43,7 @@ public:
 
 	int getOppositeDirection(void); // get the opposite direction of robot
 
-	int getOppositeDirection(const int &inputDirection); // get the opposite direction of input direction
+	int getOppositeDirection(const int inputDirection); // get the opposite direction of input direction
 
 	int getTotalAvailableDirections(void); // get total available directions from robot
 

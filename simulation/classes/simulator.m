@@ -879,7 +879,7 @@ classdef simulator < handle
         % DATE CREATED: 2016-10-12
         % PURPOSE: Initialize figure for displaying maps
             
-            sim.display.figureHandle = figure('Name', 'Micromouse Simulator', 'NumberTitle', 'off'); % initialize figure
+            sim.display.figureHandle = figure('Name', 'Micromouse Simulation', 'NumberTitle', 'off'); % initialize figure
             figurePosition = get(sim.display.figureHandle, 'Position');
             set(sim.display.figureHandle, 'Position', [figurePosition(1:2), figurePosition(3)*1.5, figurePosition(4)]);
             

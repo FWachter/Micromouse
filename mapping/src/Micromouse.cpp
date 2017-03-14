@@ -17,7 +17,7 @@ Micromouse::Micromouse() {
 }
 
 // Alternate constructor supplying x and y location
-Micromouse::Micromouse(const int &x, const int &y) {
+Micromouse::Micromouse(const int x, const int y) {
 	location.setLocation(x, y);
 	startLocation = location;
 }
@@ -28,14 +28,14 @@ Micromouse::Micromouse(const Location &location) {
 	this->startLocation = location;
 }
 
-// Alternate constructor supplying Location and Obstacles objects
-Micromouse::Micromouse(const Location &location, const int &direction, const Obstacles &obstacles) {
+// Alternate constructor supplying Location and Directions objects
+Micromouse::Micromouse(const Location &location, const int direction, const Directions &directions) {
 	this->location  = location;
 	this->direction = direction;
-	this->availableDirections = obstacles;
+	this->availableDirections = directions;
 	this->startLocation = location;
 
-	displayRobotState(location, direction, obstacles);
+	displayRobotState(location, direction, directions);
 }
 
 // Choose the only direction that is open
@@ -69,7 +69,7 @@ int Micromouse::getOppositeDirection(void) {
 }
 
 // Return the opposite direction of the input direction
-int Micromouse::getOppositeDirection(const int &inputDirection) {
+int Micromouse::getOppositeDirection(const int inputDirection) {
 	return (inputDirection+2) % MAX_DIRECTIONS;
 }
 
